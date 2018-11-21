@@ -19,11 +19,11 @@ module.exports = bot => {
 
       const threadLines = await Promise.all(userThreads.map(async thread => {
         const logUrl = await thread.getLogUrl();
-        const formattedDate = moment.utc(thread.created_at).format('MMM Do [at] HH:mm [UTC]');
+        const formattedDate = moment.utc(thread.created_at).format('Do MMM [в] HH:mm [UTC]');
         return `\`${formattedDate}\`: <${logUrl}>`;
       }));
 
-      const message = `**Log files for <@${userId}>:**\n${threadLines.join('\n')}`;
+      const message = `**Логи <@${userId}>:**\n${threadLines.join('\n')}`;
 
       // Send the list of logs in chunks of 15 lines per message
       const lines = message.split('\n');
@@ -49,6 +49,6 @@ module.exports = bot => {
   addInboxServerCommand('loglink', async (msg, args, thread) => {
     if (! thread) return;
     const logUrl = await thread.getLogUrl();
-    thread.postSystemMessage(`Log URL: ${logUrl}`);
+    thread.postSystemMessage(`Лог треда: ${logUrl}`);
   });
 };

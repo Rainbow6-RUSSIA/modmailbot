@@ -16,7 +16,7 @@ module.exports = bot => {
     const packageJson = require('../../package.json');
     const packageVersion = packageJson.version;
 
-    let response = `Modmail v${packageVersion}`;
+    let response = `Почта v${packageVersion}`;
 
     let isGit;
     try {

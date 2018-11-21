@@ -39,7 +39,7 @@ async function findOpenThreadByUserId(userId) {
 function getHeaderGuildInfo(member) {
   return {
     nickname: member.nick || member.user.username,
-    joinDate: humanizeDuration(Date.now() - member.joinedAt, {largest: 2, round: true})
+    joinDate: humanizeDuration(Date.now() - member.joinedAt, {largest: 2, round: true, language: 'ru' })
   };
 }
 
@@ -81,7 +81,7 @@ async function createNewThreadForUser(user, quiet = false) {
   // Attempt to create the inbox channel for this thread
   let createdChannel;
   try {
-    createdChannel = await utils.getInboxGuild().createChannel(channelName, null, 'New ModMail thread', config.newThreadCategoryId);
+    createdChannel = await utils.getInboxGuild().createChannel(channelName, null, 'Новый почтовый тред', config.newThreadCategoryId);
   } catch (err) {
     console.error(`Error creating modmail channel for ${user.username}#${user.discriminator}!`);
     throw err;
@@ -103,7 +103,7 @@ async function createNewThreadForUser(user, quiet = false) {
     // Ping moderators of the new thread
     if (config.mentionRole) {
       await newThread.postNonLogMessage({
-        content: `${utils.getInboxMention()}New modmail thread (${newThread.user_name})`,
+        content: `${utils.getInboxMention()}Новый почтовый тред (${newThread.user_name})`,
         disableEveryone: false
       });
     }
@@ -122,8 +122,8 @@ async function createNewThreadForUser(user, quiet = false) {
   const infoHeaderItems = [];
 
   // Account age
-  const accountAge = humanizeDuration(Date.now() - user.createdAt, {largest: 2, round: true});
-  infoHeaderItems.push(`ACCOUNT AGE **${accountAge}**`);
+  const accountAge = humanizeDuration(Date.now() - user.createdAt, {largest: 2, round: true, language: 'ru'});
+  infoHeaderItems.push(`ВОЗРАСТ АККАУНТА **${accountAge}**`);
 
   // User id (and mention, if enabled)
   if (config.mentionUserInThreadHeader) {
@@ -144,8 +144,8 @@ async function createNewThreadForUser(user, quiet = false) {
 
     const {nickname, joinDate} = getHeaderGuildInfo(member);
     guildInfoHeaderItems.set(guild.name, [
-      `NICKNAME **${nickname}**`,
-      `JOINED **${joinDate}** ago`
+      `НИКНЕЙМ **${nickname}**`,
+      `ПРИСОЕДИНИЛСЯ **${joinDate}** назад`
     ]);
   });
 
@@ -157,9 +157,13 @@ async function createNewThreadForUser(user, quiet = false) {
     }
   });
 
+  function declOfNum(n, titles) {
+    return titles[(n % 10 == 1 && n % 100 != 11 ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2)];
+  }
+
   const userLogCount = await getClosedThreadCountByUserId(user.id);
   if (userLogCount > 0) {
-    infoHeader += `\n\nThis user has **${userLogCount}** previous modmail threads. Use \`${config.prefix}logs\` to see them.`;
+    infoHeader += `\n\n"Этот пользователь имеет **${userLogCount}** обращени${declOfNum(userLogCount, ['е', 'я', 'й'])}. Используйте \`${config.prefix}logs\` чтобы посмотреть их.`;
   }
 
   infoHeader += '\n────────────────';
@@ -168,7 +172,7 @@ async function createNewThreadForUser(user, quiet = false) {
 
   // If there were errors sending a response to the user, note that
   if (responseMessageError) {
-    await newThread.postSystemMessage(`**NOTE:** Could not send auto-response to the user. The error given was: \`${responseMessageError.message}\``);
+    await newThread.postSystemMessage(`*ВАЖНО:** Не удалось отправить автоответ пользователю. Ошибка: \`${responseMessageError.message}\``);
   }
 
   // Return the thread

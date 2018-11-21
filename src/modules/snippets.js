@@ -62,19 +62,19 @@ module.exports = bot => {
     if (snippet) {
       if (text) {
         // If the snippet exists and we're trying to create a new one, inform the user the snippet already exists
-        utils.postSystemMessageWithFallback(msg.channel, thread, `Snippet "${trigger}" already exists! You can edit or delete it with ${config.prefix}edit_snippet and ${config.prefix}delete_snippet respectively.`);
+        utils.postSystemMessageWithFallback(msg.channel, thread, `Шаблон "${trigger}" уже существует! Вы можете отредактировать или удалить его с помощью \`${config.prefix}edit_snippet\` и \`${config.prefix}delete_snippet\` соответственно.`);
       } else {
         // If the snippet exists and we're NOT trying to create a new one, show info about the existing snippet
-        utils.postSystemMessageWithFallback(msg.channel, thread, `\`${config.snippetPrefix}${trigger}\` replies with:\n${snippet.body}`);
+        utils.postSystemMessageWithFallback(msg.channel, thread, `\`${config.snippetPrefix}${trigger}\` ответит:\n${snippet.body}`);
       }
     } else {
       if (text) {
         // If the snippet doesn't exist and the user wants to create it, create it
         await snippets.add(trigger, text, msg.author.id);
-        utils.postSystemMessageWithFallback(msg.channel, thread, `Snippet "${trigger}" created!`);
+        utils.postSystemMessageWithFallback(msg.channel, thread, `Шаблон "${trigger}" создан!`);
       } else {
         // If the snippet doesn't exist and the user isn't trying to create it, inform them how to create it
-        utils.postSystemMessageWithFallback(msg.channel, thread, `Snippet "${trigger}" doesn't exist! You can create it with \`${config.prefix}snippet ${trigger} text\``);
+        utils.postSystemMessageWithFallback(msg.channel, thread, `Шаблон "${trigger}" не существует! Вы можете создать его с помощью \`${config.prefix}snippet ${trigger} text\`.`);
       }
     }
   });
@@ -87,12 +87,12 @@ module.exports = bot => {
 
     const snippet = await snippets.get(trigger);
     if (! snippet) {
-      utils.postSystemMessageWithFallback(msg.channel, thread, `Snippet "${trigger}" doesn't exist!`);
+      utils.postSystemMessageWithFallback(msg.channel, thread, `Шаблон "${trigger}" не существует!`);
       return;
     }
 
     await snippets.del(trigger);
-    utils.postSystemMessageWithFallback(msg.channel, thread, `Snippet "${trigger}" deleted!`);
+    utils.postSystemMessageWithFallback(msg.channel, thread, `Шаблон "${trigger}" удален!`);
   });
 
   bot.registerCommandAlias('ds', 'delete_snippet');
@@ -106,14 +106,14 @@ module.exports = bot => {
 
     const snippet = await snippets.get(trigger);
     if (! snippet) {
-      utils.postSystemMessageWithFallback(msg.channel, thread, `Snippet "${trigger}" doesn't exist!`);
+      utils.postSystemMessageWithFallback(msg.channel, thread, `Шаблон "${trigger}" не существует!`);
       return;
     }
 
     await snippets.del(trigger);
     await snippets.add(trigger, text, msg.author.id);
 
-    utils.postSystemMessageWithFallback(msg.channel, thread, `Snippet "${trigger}" edited!`);
+    utils.postSystemMessageWithFallback(msg.channel, thread, `Шаблон "${trigger}" изменен!`);
   });
 
   bot.registerCommandAlias('es', 'edit_snippet');
@@ -123,6 +123,6 @@ module.exports = bot => {
     const triggers = allSnippets.map(s => s.trigger);
     triggers.sort();
 
-    utils.postSystemMessageWithFallback(msg.channel, thread, `Available snippets (prefix ${config.snippetPrefix}):\n${triggers.join(', ')}`);
+    utils.postSystemMessageWithFallback(msg.channel, thread, `Доступные шаблоны (префикс ${config.snippetPrefix}):\n${triggers.join(', ')}`);
   });
 };

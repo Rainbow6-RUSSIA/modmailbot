@@ -15,6 +15,13 @@ module.exports = {
   },
 
   ACCIDENTAL_THREAD_MESSAGES: [
+    'спасибо',
+    'спс',
+    'благодарю',
+    'хорошо',
+    'ок',
+    'без проблем',
+    
     'ok',
     'okay',
     'thanks',

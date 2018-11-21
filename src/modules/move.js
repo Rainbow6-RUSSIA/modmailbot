@@ -47,7 +47,7 @@ module.exports = bot => {
     });
 
     if (containsRankings[0][1] === 0) {
-      thread.postSystemMessage('No matching category');
+      thread.postSystemMessage('Категория не найдена');
       return;
     }
 
@@ -57,6 +57,6 @@ module.exports = bot => {
       parentID: targetCategory.id
     });
 
-    thread.postSystemMessage(`Thread moved to ${targetCategory.name.toUpperCase()}`);
+    thread.postSystemMessage(`Тред перемещен в категорию ${targetCategory.name.toUpperCase()}`);
   });
 };

@@ -1,5 +1,8 @@
 const Eris = require('eris');
 
+const moment = require('moment');
+moment.locale('ru');
+
 const config = require('./config');
 const bot = require('./bot');
 const {messageQueue} = require('./queue');
@@ -99,7 +102,7 @@ bot.on('messageUpdate', async (msg, oldMessage) => {
   if (await blocked.isBlocked(msg.author.id)) return;
 
   // Old message content doesn't persist between bot restarts
-  const oldContent = oldMessage && oldMessage.content || '*Unavailable due to bot restart*';
+  const oldContent = oldMessage && oldMessage.content || '*Недоступно из-за перезапуска бота*';
   const newContent = msg.content;
 
   // Ignore bogus edit events with no changes
@@ -110,7 +113,7 @@ bot.on('messageUpdate', async (msg, oldMessage) => {
     const thread = await threads.findOpenThreadByUserId(msg.author.id);
     if (! thread) return;
     
-    const editMessage = utils.disableLinkPreviews(`**The user edited their message:**\n\`B:\` ${oldContent}\n\`A:\` ${newContent}`);
+    const editMessage = utils.disableLinkPreviews(`**Пользователь отредактировал сообщение:**\n\`до:\` ${oldContent}\n\`после:\` ${newContent}`);
     thread.postSystemMessage(editMessage);
   }
 
@@ -163,9 +166,9 @@ bot.on('messageCreate', async msg => {
   const staffMention = (config.pingOnBotMention ? utils.getInboxMention() : '');
 
   if (mainGuilds.length === 1) {
-    content = `${staffMention}Bot mentioned in ${msg.channel.mention} by **${msg.author.username}#${msg.author.discriminator}**: "${msg.cleanContent}"`;
+    content = `${staffMention}Бот упомянут в ${msg.channel.mention} **${msg.author.username}#${msg.author.discriminator}**: "${msg.cleanContent}"`;
   } else {
-    content = `${staffMention}Bot mentioned in ${msg.channel.mention} (${msg.channel.guild.name}) by **${msg.author.username}#${msg.author.discriminator}**: "${msg.cleanContent}"`;
+    content = `${staffMention}Бот упомянут в ${msg.channel.mention} (${msg.channel.guild.name}) **${msg.author.username}#${msg.author.discriminator}**: "${msg.cleanContent}"`;
   }
 
   bot.createMessage(utils.getLogChannel().id, {

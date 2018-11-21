@@ -1,0 +1,21 @@
+module.exports = {
+  "token": process.env.DISCORD_TOKEN,
+  "mailGuildId": process.env.INBOX_GUILD,
+  "mainGuildId": process.env.MAIN_GUILD.split(','),
+  "logChannelId": process.env.LOG_CHANNEL,
+  "port": process.env.PORT,
+  "url": process.env.URL,
+
+  "relaySmallAttachmentsAsAttachments": process.env.RELAY_ATTACHMENTS_AS_ATTACHMENTS === 'true',
+  "accountAgeDeniedMessage": "Ваш аккаунт был создан недавно, для защиты от спама вы пока не можете отправлять сообщения.",
+  "requiredAccountAge": parseInt(process.env.REQUIRED_ACCOUNT_AGE),
+  "typingProxy": process.env.TYPING_PROXY === 'true',
+  "typingProxyReverse": process.env.TYPING_PROXY_REVERSE === 'true',
+  "useNicknames": process.env.USE_NICKNAMES === 'true',
+  "status": "ЛС сервера",
+  "responseMessage": "Спасибо за обращение! Администрация скоро ответит.",
+  "allowMove": process.env.ALLOW_MOVE === 'true',
+
+  "mentionUserInThreadHeader": process.env.HEADER_MENTION === 'true',
+  "newThreadCategoryId": process.env.CATEGORY_ID
+}

@@ -8,10 +8,10 @@ module.exports = bot => {
 
     if (args[0] && args[0].startsWith('c')) {
       await thread.setAlert(null);
-      await thread.postSystemMessage(`Cancelled new message alert`);
+      await thread.postSystemMessage(`Оповещение при новом сообщении отменено.`);
     } else {
       await thread.setAlert(msg.author.id);
-      await thread.postSystemMessage(`Pinging ${msg.author.username}#${msg.author.discriminator} when this thread gets a new reply`);
+      await thread.postSystemMessage(`Упоминание ${msg.author.username}#${msg.author.discriminator} при появлении новых сообщений в треде.`);
     }
   });
 };

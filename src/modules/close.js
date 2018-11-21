@@ -8,7 +8,7 @@ const blocked = require('../data/blocked');
 const {messageQueue} = require('../queue');
 
 module.exports = bot => {
-  const humanizeDelay = (delay, opts = {}) => humanizeDuration(delay, Object.assign({conjunction: ' and '}, opts));
+  const humanizeDelay = (delay, opts = {}) => humanizeDuration(delay, Object.assign({conjunction: ' и '}, opts));
 
   // Check for threads that are scheduled to be closed and close them
   async function applyScheduledCloses() {
@@ -19,8 +19,8 @@ module.exports = bot => {
 
       const logUrl = await thread.getLogUrl();
       utils.postLog(utils.trimAll(`
-        Modmail thread with ${thread.user_name} (${thread.user_id}) was closed as scheduled by ${thread.scheduled_close_name}
-        Logs: ${logUrl}
+        Почтовый тред с ${thread.user_name} (${thread.user_id}) был запланированно закрыт ${thread.scheduled_close_name}
+        Логи: ${logUrl}
       `));
     }
   }
@@ -52,11 +52,11 @@ module.exports = bot => {
       // We need to add this operation to the message queue so we don't get a race condition
       // between showing the close command in the thread and closing the thread
       await messageQueue.add(async () => {
-        thread.postSystemMessage('Thread closed by user, closing...');
+        thread.postSystemMessage('Тред закрыт пользователем, закрываю...');
         await thread.close(true);
       });
 
-      closedBy = 'the user';
+      closedBy = 'Пользователем';
     } else {
       // A staff member is closing the thread
       if (! utils.messageIsOnInboxServer(msg)) return;
@@ -71,7 +71,7 @@ module.exports = bot => {
           // Cancel timed close
           if (thread.scheduled_close_at) {
             await thread.cancelScheduledClose();
-            thread.postSystemMessage(`Cancelled scheduled closing`);
+            thread.postSystemMessage(`Запланированное закрытие отменено`);
           }
 
           return;
@@ -80,13 +80,13 @@ module.exports = bot => {
         // Set a timed close
         const delay = utils.convertDelayStringToMS(args.join(' '));
         if (delay === 0 || delay === null) {
-          thread.postSystemMessage(`Invalid delay specified. Format: "1h30m"`);
+          thread.postSystemMessage(`Неккоректный формат задержки. Пример: \`1h30m\``);
           return;
         }
 
         const closeAt = moment.utc().add(delay, 'ms');
         await thread.scheduleClose(closeAt.format('YYYY-MM-DD HH:mm:ss'), msg.author);
-        thread.postSystemMessage(`Thread is now scheduled to be closed in ${humanizeDelay(delay)}. Use \`${config.prefix}close cancel\` to cancel.`);
+        thread.postSystemMessage(`Закрытие треда запланировано через ${humanizeDelay(delay)}. Используйте \`${config.prefix}close cancel\` для отмены.`);
 
         return;
       }
@@ -102,8 +102,8 @@ module.exports = bot => {
 
     const logUrl = await thread.getLogUrl();
     utils.postLog(utils.trimAll(`
-      Modmail thread with ${thread.user_name} (${thread.user_id}) was closed by ${closedBy}
-      Logs: ${logUrl}
+      Почтовый тред с ${thread.user_name} (${thread.user_id}) был закрыт ${closedBy}
+      Логи: ${logUrl}
     `));
   });
 
@@ -121,8 +121,8 @@ module.exports = bot => {
 
     const logUrl = await thread.getLogUrl();
     utils.postLog(utils.trimAll(`
-      Modmail thread with ${thread.user_name} (${thread.user_id}) was closed automatically because the channel was deleted
-      Logs: ${logUrl}
+      Почтовый тред с ${thread.user_name} (${thread.user_id}) был закрыт автоматически после удаления канала
+      Логи: ${logUrl}
     `));
   });
 };

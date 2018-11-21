@@ -104,10 +104,8 @@ for (const [prop, value] of Object.entries(userConfig)) {
 // Default knex config
 if (! finalConfig['knex']) {
   finalConfig['knex'] = {
-    client: 'sqlite',
-      connection: {
-      filename: path.join(finalConfig.dbDir, 'data.sqlite')
-    },
+    client: 'pg',
+    connection: process.env.DATABASE_URL,
     useNullAsDefault: true
   };
 }

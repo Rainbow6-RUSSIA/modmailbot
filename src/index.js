@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 // Verify NodeJS version
 const nodeMajorVersion = parseInt(process.versions.node.split('.')[0], 10);
 if (nodeMajorVersion < 8) {

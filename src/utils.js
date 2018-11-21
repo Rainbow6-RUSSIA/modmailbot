@@ -67,7 +67,7 @@ function postLog(...args) {
 
 function postError(str) {
   getLogChannel().createMessage({
-    content: `${getInboxMention()}**Error:** ${str.trim()}`,
+    content: `${getInboxMention()}**Ошибка:** ${str.trim()}`,
     disableEveryone: false
   });
 }
@@ -126,7 +126,7 @@ async function formatAttachment(attachment) {
   filesize /= 1024;
 
   const attachmentUrl = await attachments.getUrl(attachment.id, attachment.filename);
-  return `**Attachment:** ${attachment.filename} (${filesize.toFixed(1)}KB)\n${attachmentUrl}`;
+  return `**Приложение:** ${attachment.filename} (${filesize.toFixed(1)}KB)\n${attachmentUrl}`;
 }
 
 /**

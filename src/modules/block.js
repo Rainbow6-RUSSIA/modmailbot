@@ -9,7 +9,7 @@ module.exports = bot => {
     async function block(userId) {
       const user = bot.users.get(userId);
       await blocked.block(userId, (user ? `${user.username}#${user.discriminator}` : ''), msg.author.id);
-      msg.channel.createMessage(`Blocked <@${userId}> (id ${userId}) from modmail`);
+      msg.channel.createMessage(`Пользователь <@${userId}> (${userId}) заблокирован.`);
     }
 
     if (args.length > 0) {
@@ -26,7 +26,7 @@ module.exports = bot => {
   addInboxServerCommand('unblock', (msg, args, thread) => {
     async function unblock(userId) {
       await blocked.unblock(userId);
-      msg.channel.createMessage(`Unblocked <@${userId}> (id ${userId}) from modmail`);
+      msg.channel.createMessage(`Пользователь <@${userId}> (${userId}) разблокирован.`);
     }
 
     if (args.length > 0) {

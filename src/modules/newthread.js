@@ -13,18 +13,18 @@ module.exports = bot => {
 
     const user = bot.users.get(userId);
     if (! user) {
-      utils.postSystemMessageWithFallback(msg.channel, thread, 'User not found!');
+      utils.postSystemMessageWithFallback(msg.channel, thread, 'Пользователь не найден!');
       return;
     }
 
     const existingThread = await threads.findOpenThreadByUserId(user.id);
     if (existingThread) {
-      utils.postSystemMessageWithFallback(msg.channel, thread, `Cannot create a new thread; there is another open thread with this user: <#${existingThread.channel_id}>`);
+      utils.postSystemMessageWithFallback(msg.channel, thread, `Невозможно создать новый тред; уже открыт другой тред с этим пользователем: <#${existingThread.channel_id}>`);
       return;
     }
 
     const createdThread = await threads.createNewThreadForUser(user, true);
-    createdThread.postSystemMessage(`Thread was opened by ${msg.author.username}#${msg.author.discriminator}`);
+    createdThread.postSystemMessage(`Тред открыт ${msg.author.username}#${msg.author.discriminator}`);
 
     if (thread) {
       msg.delete();

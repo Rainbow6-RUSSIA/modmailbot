@@ -40,8 +40,8 @@ class Thread {
     const mainRole = utils.getMainRole(moderator);
 
     if (isAnonymous) {
-      modUsername = (mainRole ? mainRole.name : 'Moderator');
-      logModUsername = `(Anonymous) (${moderator.user.username}) ${mainRole ? mainRole.name : 'Moderator'}`;
+      modUsername = (mainRole ? mainRole.name : 'Администратор');
+      logModUsername = `(${moderator.user.username}) ${mainRole ? mainRole.name : 'Администратор'}`;
     } else {
       const name = (config.useNicknames ? moderator.nick || moderator.user.username : moderator.user.username);
       modUsername = (mainRole ? `(${mainRole.name}) ${name}` : name);
@@ -66,7 +66,7 @@ class Thread {
         files.push(await attachments.attachmentToFile(attachment));
         const url = await attachments.getUrl(attachment.id, attachment.filename);
 
-        logContent += `\n\n**Attachment:** ${url}`;
+        logContent += `\n\n**Приложение:** ${url}`;
       }
     }
 
@@ -75,7 +75,7 @@ class Thread {
     try {
       dmMessage = await this.postToUser(dmContent, files);
     } catch (e) {
-      await this.postSystemMessage(`Error while replying to user: ${e.message}`);
+      await this.postSystemMessage(`При ответе пользователю возникла ошибка: ${e.message}`);
       return;
     }
 
@@ -94,7 +94,7 @@ class Thread {
 
     if (this.scheduled_close_at) {
       await this.cancelScheduledClose();
-      await this.postSystemMessage(`Cancelling scheduled closing of this thread due to new reply`);
+      await this.postSystemMessage(`Отмена запланированного закрытия из-за нового сообщения`);
     }
   }
 
@@ -105,7 +105,7 @@ class Thread {
   async receiveUserReply(msg) {
     let content = msg.content;
     if (msg.content.trim() === '' && msg.embeds.length) {
-      content = '<message contains embeds>';
+      content = '<сообщение содержит встраиваемый контент>';
     }
 
     let threadContent = `**${msg.author.username}#${msg.author.discriminator}:** ${content}`;
@@ -146,12 +146,12 @@ class Thread {
 
     if (this.scheduled_close_at) {
       await this.cancelScheduledClose();
-      await this.postSystemMessage(`<@!${this.scheduled_close_id}> Thread that was scheduled to be closed got a new reply. Cancelling.`);
+      await this.postSystemMessage(`<@!${this.scheduled_close_id}> Тред, запланированный на закрытие получил новый ответ. Отмена.`);
     }
 
     if (this.alert_id) {
       await this.setAlert(null);
-      await this.postSystemMessage(`<@!${this.alert_id}> New message from ${this.user_name}`);
+      await this.postSystemMessage(`<@!${this.alert_id}> Новое сообщение от ${this.user_name}`);
     }
   }
 
@@ -172,7 +172,7 @@ class Thread {
     // Try to open a DM channel with the user
     const dmChannel = await this.getDMChannel();
     if (! dmChannel) {
-      throw new Error('Could not open DMs with the user. They may have blocked the bot or set their privacy settings higher.');
+      throw new Error('Не удается открыть ЛС с пользователем. Он, возможно, заблокировал бота или повысил настройки приватности.');
     }
 
     // Send the DM
@@ -319,7 +319,7 @@ class Thread {
   async close(silent = false) {
     if (! silent) {
       console.log(`Closing thread ${this.id}`);
-      await this.postSystemMessage('Closing thread...');
+      await this.postSystemMessage('Закрываю тред...');
     }
 
     // Update DB status
@@ -333,7 +333,7 @@ class Thread {
     const channel = bot.getChannel(this.channel_id);
     if (channel) {
       console.log(`Deleting channel ${this.channel_id}`);
-      await channel.delete('Thread closed');
+      await channel.delete('Тред закрыт');
     }
   }
 

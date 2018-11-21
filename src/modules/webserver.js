@@ -28,15 +28,15 @@ async function serveLogs(res, pathParts) {
       return message.body;
     }
 
-    let line = `[${moment.utc(message.created_at).format('YYYY-MM-DD HH:mm:ss')}] `;
+    let line = `[${moment.utc(message.created_at).format('DD-MM-YYYY HH:mm:ss')} UTC] `;
 
     if (message.message_type === THREAD_MESSAGE_TYPE.SYSTEM) {
       // System messages don't need the username
       line += message.body;
     } else if (message.message_type === THREAD_MESSAGE_TYPE.FROM_USER) {
-      line += `[FROM USER] ${message.user_name}: ${message.body}`;
+      line += `[ОТ ПОЛЬЗОВАТЕЛЯ] ${message.user_name}: ${message.body}`;
     } else if (message.message_type === THREAD_MESSAGE_TYPE.TO_USER) {
-      line += `[TO USER] ${message.user_name}: ${message.body}`;
+      line += `[К ПОЛЬЗОВАТЕЛЮ] ${message.user_name}: ${message.body}`;
     } else {
       line += `${message.user_name}: ${message.body}`;
     }

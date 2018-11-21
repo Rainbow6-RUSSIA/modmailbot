@@ -7,7 +7,7 @@ module.exports = bot => {
   addInboxServerCommand('suspend', async (msg, args, thread) => {
     if (! thread) return;
     await thread.suspend();
-    thread.postSystemMessage(`**Thread suspended!** This thread will act as closed until unsuspended with \`!unsuspend\``);
+    thread.postSystemMessage(`**Тред заморожен!** Этот тред останется замороженным пока не будет выполнена команда \`!unsuspend\``);
   });
 
   addInboxServerCommand('unsuspend', async msg => {
@@ -16,11 +16,11 @@ module.exports = bot => {
 
     const otherOpenThread = await threads.findOpenThreadByUserId(thread.user_id);
     if (otherOpenThread) {
-      thread.postSystemMessage(`Cannot unsuspend; there is another open thread with this user: <#${otherOpenThread.channel_id}>`);
+      thread.postSystemMessage(`Невозможно разморозить тред; уже открыт другой тред с этим пользователем: <#${otherOpenThread.channel_id}>`);
       return;
     }
 
     await thread.unsuspend();
-    thread.postSystemMessage(`**Thread unsuspended!**`);
+    thread.postSystemMessage(`**Тред разморожен!**`);
   });
 };
