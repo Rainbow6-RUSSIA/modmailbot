@@ -104,8 +104,8 @@ for (const [prop, value] of Object.entries(userConfig)) {
 // Default knex config
 if (! finalConfig['knex']) {
   finalConfig['knex'] = {
-    client: 'pg',
-    connection: process.env.DATABASE_URL,
+    client: finalConfig.storage || 'pg',
+    connection: finalConfig.dbConnection || process.env.DATABASE_URL,
     useNullAsDefault: true
   };
 }
