@@ -8,7 +8,7 @@ const blocked = require('../data/blocked');
 const {messageQueue} = require('../queue');
 
 module.exports = bot => {
-  const humanizeDelay = (delay, opts = {}) => humanizeDuration(delay, Object.assign({conjunction: ' и '}, opts));
+  const humanizeDelay = (delay, opts = {}) => humanizeDuration(delay, Object.assign({conjunction: ' и ', language: 'ru'}, opts));
 
   // Check for threads that are scheduled to be closed and close them
   async function applyScheduledCloses() {
