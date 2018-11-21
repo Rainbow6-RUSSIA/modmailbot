@@ -1,7 +1,7 @@
 # Администраторская почта для Discord
-A bot for [Discord](https://discordapp.com/) that allows users to DM the bot to contact the server's entire mod team.
-These DMs get relayed to a modmail server where each user gets their own channel, or "thread".
-Moderators and admins can then reply to these threads, and these responses are relayed back to the original user as a DM.
+[Discord](https://discordapp.com/)-бот, позволящий пользователям через ЛС бота связываться с со всеми администраторами сервера.
+Эти ЛС перенаправляются в сервер-ящик, где на каждого пользователя будет открыт собственный канал ("тред").
+Администратоы смогут ответить в треде, и эти ответы будут возвращены ботом в ЛС пользователя.
 
 Вдохновлено админской почтой Reddit'а.
 
