@@ -26,32 +26,32 @@ See [CHANGELOG.md](CHANGELOG.md)
 
 ## Commands
 
-##### Anywhere on the modmail inbox server
-`!logs <user>` Lists previous modmail logs with the specified user  
-`!block <user>` Blocks the specified user from using modmail  
-`!unblock <user>` Unblocks the specified user from using modmail  
-`!s <shortcut> <text>` Adds a snippet (a canned response). See below for how to use it.  
-`!edit_snippet <shortcut> <text>` Edits an existing snippet (alias `!es`)  
-`!delete_snippet <shortcut>` Deletes the specified snippet (alias `!ds`)  
-`!snippets` Lists all available snippets
-`!version` Print the version of the bot you're running  
-`!newthread <user>` Opens a new thread with the specified user
+##### Команды для использования в почтовом ящике - сервере
+`!logs <user>` Вывести предыдущие логи сообщений пользователя
+`!block <user>` Заблокировать пользователя в почте
+`!unblock <user>` Разблокировать пользователя в почте
+`!s <shortcut> <text>` Добавить шаблон. Использование:
+`!edit_snippet <shortcut> <text>` Редактировать шаблон (алиас `!es`)  
+`!delete_snippet <shortcut>` Удалить шаблон (алиас`!ds`)  
+`!snippets` Вывести список шаблонов
+`!version` Вывести версию бота
+`!newthread <user>` Открыть новый тред с указанным пользователем
 
-##### Inside a modmail thread
-`!reply <text>` Sends a reply to the user in the format "(Role) User: text" (alias `!r`)  
-`!anonreply <text>` Sends an anonymous reply to the user in the format "Role: text" (alias `!ar`)  
-`!close <time>` Closes the modmail thread. If a time is specified, the thread is scheduled to be closed later. Scheduled closing is cancelled if a message is sent to or received from the user.  
-`!logs` Lists previous modmail logs with this user  
-`!block` Blocks the user from using modmail  
-`!unblock` Unblocks the user from using modmail  
-`!!shortcut` Reply with a snippet. Replace `shortcut` with the snippet's actual shortcut.  
-`!!!shortcut` Reply with a snippet anonymously. Replace `shortcut` with the snippet's actual shortcut.  
-`!move <category>` If `allowMove` is enabled, moves the thread channel to the specified category  
-`!loglink` Shows the link to the current thread's log  
-`!suspend` Suspend a thread. The thread will act as closed and not receive any messages until unsuspended.  
-`!unsuspend` Unsuspend a thread  
-`!id` Prints the user's ID
-`!alert` Pings you when the thread gets a new reply. Use `!alert cancel` to cancel.
+##### Команды для использования в треде
+`!reply <text>` Ответить пользователю по формату "(Role) User: text" (алиас `!r`)  
+`!anonreply <text>` Ответить анонимно пользователю по формату "Role: text" (алиас`!ar`)  
+`!close <time>` Закрыть тред. Если указано время, то закрытие будет запланировано. Если происходит обмен сообщением, то закрытие отменяется.  
+`!logs` Вывести предыдущие логи сообщений пользователя
+`!block` Заблокировать пользователя в почте 
+`!unblock` Разблокировать пользователя в почте
+`!!shortcut` Ответить шаблоном. Замените`shortcut` названием шаблона.  
+`!!!shortcut`  Ответить анонимно шаблоном. RЗамените`shortcut` названием шаблона.  
+`!move <category>` Переместить тред в другую категорию
+`!loglink` Вывести ссылку на лог текущего треда  
+`!suspend` Заморозить тред. Тред будет отображаться как закрытый и не будет принимать сообщения до разморозки.  
+`!unsuspend` Разморозить тред.  
+`!id` Вывести ID пользователя
+`!alert` Упомянуть, когда появится новое сообщение. Используйте `!alert cancel` для отмены.
 
 To automatically reply without using !reply or !r, enable `alwaysReply` in the config. `alwaysReplyAnon` sets whether to reply anonymously. If you do not wish to reply, it will ignore any message starting in the prefix (which defaults to !), such as !note
 
