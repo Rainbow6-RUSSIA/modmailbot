@@ -14,7 +14,14 @@ module.exports = {
   "allowMove": process.env.ALLOW_MOVE === 'true',
   "mentionUserInThreadHeader": process.env.HEADER_MENTION === 'true',
   "newThreadCategoryId": process.env.CATEGORY_ID,
-  "dbConnection": process.env.DB,
+  // "dbConnection": process.env.DB,
+
+  "knex": {
+    client: "pg",
+    connection: process.env.DB,
+    useNullAsDefault: true,
+    searchPath: "mailbot"
+  },
   
   "accountAgeDeniedMessage": "Ваш аккаунт был создан недавно, для защиты от спама вы пока не можете отправлять сообщения.",
   "status": "ЛС сервера",
