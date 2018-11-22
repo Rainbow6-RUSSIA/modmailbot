@@ -87,6 +87,9 @@ const defaultConfig = {
   "knex": null,
 
   "logDir": path.join(__dirname, '..', 'logs'),
+  
+  "storage": "pg",
+  "dbConnection": process.env.DATABASE_URL,
 };
 
 const required = ['token', 'mailGuildId', 'mainGuildId', 'logChannelId'];
@@ -104,8 +107,8 @@ for (const [prop, value] of Object.entries(userConfig)) {
 // Default knex config
 if (! finalConfig['knex']) {
   finalConfig['knex'] = {
-    client: finalConfig.storage || 'pg',
-    connection: finalConfig.dbConnection || process.env.DATABASE_URL,
+    client: finalConfig.storage,
+    connection: finalConfig.dbConnection,
     useNullAsDefault: true
   };
 }

@@ -14,6 +14,7 @@ module.exports = {
   "allowMove": process.env.ALLOW_MOVE === 'true',
   "mentionUserInThreadHeader": process.env.HEADER_MENTION === 'true',
   "newThreadCategoryId": process.env.CATEGORY_ID,
+  "dbConnection": process.env.DB,
   
   "accountAgeDeniedMessage": "Ваш аккаунт был создан недавно, для защиты от спама вы пока не можете отправлять сообщения.",
   "status": "ЛС сервера",
