@@ -20,7 +20,7 @@ module.exports = {
     client: "pg",
     connection: process.env.DB,
     useNullAsDefault: true,
-    searchPath: "mailbot"
+    searchPath: ["knex", "mailbot"]
   },
   
   "accountAgeDeniedMessage": "Ваш аккаунт был создан недавно, для защиты от спама вы пока не можете отправлять сообщения.",
