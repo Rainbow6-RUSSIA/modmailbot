@@ -5,15 +5,20 @@ const config = require('../config');
 module.exports = bot => {
   if (! config.enableGreeting) return;
 
-  const greetingGuildId = config.mainGuildId || config.greetingGuildId;
+  const greetingGuilds = config.mainGuildId;
 
   bot.on('guildMemberAdd', (guild, member) => {
-    if (guild.id !== greetingGuildId) return;
+    if (! greetingGuilds.includes(guild.id)) return;
 
     function sendGreeting(file) {
       bot.getDMChannel(member.id).then(channel => {
         if (! channel) return;
-        channel.createMessage(config.greetingMessage || '', file);
+
+        channel.createMessage(config.greetingMessage || '', file)
+          .catch(e => {
+            if (e.code === 50007) return;
+            throw e;
+          });
       });
     }
 

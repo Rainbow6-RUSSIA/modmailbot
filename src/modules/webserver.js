@@ -28,15 +28,15 @@ async function serveLogs(res, pathParts) {
       return message.body;
     }
 
-    let line = `[${moment(message.created_at).format('YYYY-MM-DD HH:mm:ss')}] `;
+    let line = `[${moment.utc(message.created_at).format('DD-MM-YYYY HH:mm:ss')} UTC] `;
 
     if (message.message_type === THREAD_MESSAGE_TYPE.SYSTEM) {
       // System messages don't need the username
       line += message.body;
     } else if (message.message_type === THREAD_MESSAGE_TYPE.FROM_USER) {
-      line += `[FROM USER] ${message.user_name}: ${message.body}`;
+      line += `[ОТ ПОЛЬЗОВАТЕЛЯ] ${message.user_name}: ${message.body}`;
     } else if (message.message_type === THREAD_MESSAGE_TYPE.TO_USER) {
-      line += `[TO USER] ${message.user_name}: ${message.body}`;
+      line += `[К ПОЛЬЗОВАТЕЛЮ] ${message.user_name}: ${message.body}`;
     } else {
       line += `${message.user_name}: ${message.body}`;
     }
@@ -53,7 +53,7 @@ function serveAttachments(res, pathParts) {
   const id = pathParts[pathParts.length - 2];
 
   if (id.match(/^[0-9]+$/) === null) return notfound(res);
-  if (desiredFilename.match(/^[0-9a-z\._-]+$/i) === null) return notfound(res);
+  if (desiredFilename.match(/^[0-9a-z._-]+$/i) === null) return notfound(res);
 
   const attachmentPath = attachments.getPath(id);
   fs.access(attachmentPath, (err) => {
@@ -61,7 +61,7 @@ function serveAttachments(res, pathParts) {
 
     const filenameParts = desiredFilename.split('.');
     const ext = (filenameParts.length > 1 ? filenameParts[filenameParts.length - 1] : 'bin');
-    const fileMime = mime.lookup(ext);
+    const fileMime = mime.getType(ext);
 
     res.setHeader('Content-Type', fileMime);
 
@@ -82,6 +82,10 @@ module.exports = () => {
     } else {
       notfound(res);
     }
+  });
+
+  server.on('error', err => {
+    console.log('[WARN] Web server error:', err.message);
   });
 
   server.listen(config.port);
