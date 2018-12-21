@@ -1,74 +1,89 @@
-# Modmail for Discord
-A bot for [Discord](https://discordapp.com/) that allows users to DM the bot to contact the server's entire mod team.
-These DMs get relayed to a modmail server where each user gets their own channel, or "thread".
-Moderators and admins can then reply to these threads, and these responses are relayed back to the original user as a DM.
+# Администраторская почта для Discord
+[Discord](https://discordapp.com/)-бот, позволящий пользователям через ЛС бота связываться с со всеми администраторами сервера.
+Эти ЛС перенаправляются в сервер-ящик, где на каждого пользователя будет открыт собственный канал ("тред").
+Администратоы смогут ответить в треде, и эти ответы будут возвращены ботом в ЛС пользователя.
 
-Inspired by Reddit's modmail system.
+Вдохновлено админской почтой Reddit'а.
 
-### NOTE! If you're upgrading from a version prior to Feb 24 2018:
-* Take backups
-* Run `npm install` again
-* Follow the on-screen instructions after `npm start`
+## Установка
+1. Установить Node.js 8.9.4 (LTS) или выше.
+2. Склонируйте или скачайте этот репозиторий.
+3. Создайте сервер в Discord, который будет использоваться в роли почтового ящика.
+4. Сделайте копию `config.example.json` и назовите `config.json` (или `config.js` для использования ENV переменных). Откройте файл и заполните значения указанные в конце страницы.
+5. Установите зависимости: `npm install`.
+6. Добавьте бота на необходимые сервера и убедитесь, что дали ему права на сервере-ящике.
+7. Запустите: `npm start`.
 
-## Setup
-1. Install Node.js 8.9.4 (LTS) or higher
-2. Clone or download this repository
-3. Create a Discord server to be used as the modmail inbox
-4. Make a copy of the file `config.example.json` in the same folder and name the copy `config.json`. Open the file and fill in the values.
-   - You can also find more configurable options at the end of this page!
-5. Install dependencies: `npm install`
-6. Add bot to servers, and make sure to give it proper permissions on the mail server.
-7. Run the bot: `npm start`
+## Список изменений
+Смотри [CHANGELOG.md](CHANGELOG.md)
 
-## Changelog
-See [CHANGELOG.md](CHANGELOG.md)
+## Команды
 
-## Commands
+##### Команды для использования в почтовом ящике - сервере
+`!logs <user>` Вывести предыдущие логи сообщений пользователя
+`!block <user>` Заблокировать пользователя в почте
+`!unblock <user>` Разблокировать пользователя в почте
+`!s <shortcut> <text>` Добавить шаблон. Использование:
+`!edit_snippet <shortcut> <text>` Редактировать шаблон (алиас `!es`)  
+`!delete_snippet <shortcut>` Удалить шаблон (алиас`!ds`)  
+`!snippets` Вывести список шаблонов
+`!version` Вывести версию бота
+`!newthread <user>` Открыть новый тред с указанным пользователем
 
-##### Anywhere on the modmail inbox server
-`!logs <user>` Lists previous modmail logs with the specified user  
-`!block <user>` Blocks the specified user from using modmail  
-`!unblock <user>` Unblocks the specified user from using modmail  
-`!s <shortcut> <text>` Adds a snippet (a canned response). See below for how to use it.  
-`!edit_snippet <shortcut> <text>` Edits an existing snippet (alias `!es`)  
-`!delete_snippet <shortcut>` Deletes the specified snippet (alias `!ds`)  
-`!snippets` Lists all available snippets
+##### Команды для использования в треде
+`!reply <text>` Ответить пользователю по формату "(Role) User: text" (алиас `!r`)  
+`!anonreply <text>` Ответить анонимно пользователю по формату "Role: text" (алиас`!ar`)  
+`!close <time>` Закрыть тред. Если указано время, то закрытие будет запланировано. Если происходит обмен сообщением, то закрытие отменяется.  
+`!logs` Вывести предыдущие логи сообщений пользователя
+`!block` Заблокировать пользователя в почте 
+`!unblock` Разблокировать пользователя в почте
+`!!shortcut` Ответить шаблоном. Замените `shortcut` названием шаблона.  
+`!!!shortcut`  Ответить анонимно шаблоном. Замените `shortcut` названием шаблона.  
+`!move <category>` Переместить тред в другую категорию
+`!loglink` Вывести ссылку на лог текущего треда  
+`!suspend` Заморозить тред. Тред будет отображаться как закрытый и не будет принимать сообщения до разморозки.  
+`!unsuspend` Разморозить тред.  
+`!id` Вывести ID пользователя
+`!alert` Упомянуть, когда появится новое сообщение. Используйте `!alert cancel` для отмены.
 
-##### Inside a modmail thread
-`!reply <text>` Sends a reply to the user in the format "(Role) User: text" (alias `!r`)  
-`!anonreply <text>` Sends an anonymous reply to the user in the format "Role: text" (alias `!ar`)  
-`!close` Closes the modmail thread and saves a log of it  
-`!logs` Lists previous modmail logs with this user  
-`!block` Blocks the user from using modmail  
-`!unblock` Unblocks the user from using modmail  
-`!!shortcut` Reply with a snippet. Replace `shortcut` with the snippet's actual shortcut.  
-`!move <category>` If `allowMove` is enabled, moves the thread channel to the specified category
+## Настройки `config.json`
+Пример: `config.example.json`.
 
-To automatically reply without using !reply or !r, enable `alwaysReply` in the config. `alwaysReplyAnon` sets whether to reply anonymously. If you do not wish to reply, it will ignore any message starting in the prefix (which defaults to !), such as !note
-
-## Configuration options
-These go in `config.json`. See also `config.example.json`.
-
-|Option|Default|Description|
+|Параметр|По умолчанию|Описание|
 |------|-------|-----------|
-|token|None|**Required!** The bot user's token|
-|mailGuildId|None|**Required!** The inbox server's ID|
-|mainGuildId|None|ID of the main server where people contact the bot from, used for e.g. displaying users' nicknames|
-|prefix|"!"|Prefix for bot commands|
-|status|"Message me for help"|The bot's "Playing" text|
-|responseMessage|"Thank you for your message! Our mod team will reply to you here as soon as possible."|The bot's response to DMs that start a new thread|
-|alwaysReply|false|If set to true, all messages in modmail threads will be relayed back to the user, even ones without `!r`|
-|alwaysReplyAnon|false|If `alwaysReply` is set to true, this option controls whether the auto-reply is anonymous|
-|useNicknames|false|If set to true, mod replies will use their nickname (on the inbox server) instead of their username|
-|ignoreAccidentalThreads|false|If set to true, the bot attempts to ignore common "accidental" messages that would start a new thread, such as "ok", "thanks", etc.|
-|enableGreeting|false|Set to true to send a welcome message to new main guild members. Requires `mainGuildId` to be set.|
-|greetingMessage|None|Text content of the welcome message|
-|greetingAttachment|None|Path to an image or other attachment to send along with the greeting|
-|port|8890|Port from which to serve attachments and logs|
-|url|None|URL to use for attachment and log links. Defaults to `IP:PORT`|
-|snippetPrefix|"!!"|Prefix to use snippets. Defaults to `prefix` x2.|
-|inboxServerPermission|None|Permission required to use bot commands on the inbox server|
-|logChannelId|Server's default channel|Channel where to post links to closed threads and other alerts|
-|newThreadCategoryId|None|ID of the category where new modmail thread channels should be placed|
-|relaySmallAttachmentsAsAttachments|false|Whether to relay small (<2MB) attachments from users as attachments rather than links in modmail threads|
-|threadTimestamps|false|Whether to show custom timestamps in threads, in addition to Discord's own timestamps. Logs always have accurate timestamps, regardless of this setting.|
+|**token**|Не указано|**Обязательно!** Токен бота.|
+|**logChannelId**|Не указано|**Обязательно!** Канал для постинга логов закрытых тредов и прочих уведомлений.|
+|**mailGuildId**|Не указано|**Обязательно!** ID сервера-ящика.|
+|**mainGuildId**|Не указано|**Обязательно!** ID (или массив ID) главного сервера откуда будут обращаться пользователи. Используется для отображения серверных никнеймов, дат присоединения и перехват упоминаний бота.|
+|accountAgeDeniedMessage|"Your Discord account is not old enough to contact modmail."|Смотри `requiredAccountAge` далее.|
+|allowMove|false|Если включено, то позволяет перенести тред в категорию каналов. Использование `!move <category>`.|
+|allowUserClose|false|Если включено, то пользователи смогут самостоятельно закрывать тред в ЛС бота.|
+|alwaysReplyAnon|false|Если включено `alwaysReply`, то автоматический ответ будет анонимным.|
+|alwaysReply|false|Если включено, то все сообщения не начинающиеся с префикса `!` (по умолчанию) будут автоматически отправлены пользователю, даже без `!r`|
+|botMentionResponse|Не указано|Если указано, то бот будет отвечать этим сообщением на свое упоминание.|
+|closeMessage|Не указано|Сообщение, отправляемое пользователю при закрытии треда.|
+|enableGreeting|false|Если включено, то новые пользователи будут получать приветственное сообщение при присоединении.|
+|greetingAttachment|Не указано|Путь к изображению или другому файлу для прикрепления к приветственному сообщению.|
+|greetingMessage|Не указано|Текст приветственного сообщения|
+|ignoreAccidentalThreads|false|Если включено, то бот попытается игнорировать сообщения по типу "привет", "спасибо" и т.д.|
+|inboxServerPermission|Не указано|Необходимые права пользователя для использования бота на сервере-ящике.|
+|mentionRole|"here"|Роль, которая будет упомянута при создании нового треда или упоминании бота. Принимает "here", "everyone" или ID роли. Укажите `null` чтобы полностью отключить упоминания.|
+|mentionUserInThreadHeader|false|Если включено, то обратившийся пользователь будет упомянут в шапке треда.|
+|newThreadCategoryId|Не указано|ID категории каналов куда будут помещаться открываемые треды.|
+|pingOnBotMention|true|Если включено, то бот упомянет администраторов на сервере-ящике (смотри mentionRole выше) при упоминании бота на основном сервере.|
+|port|8890|Порт веб-сервера логов и приложений.|
+|prefix|"!"|Префикс команд бота.|
+|relaySmallAttachmentsAsAttachments|false|Если включено, то бот будет пересылать небольшие приложения как приложения, а не как ссылку на файл приложения на веб-сервере.|
+|requiredAccountAge|Не указано|Требуемый возраст аккаунта для отправки сообщений в почту (в часах). Если возраст не достигнут, то тред не будет создан, а пользователь получит сообщение, указанное в `accountAgeDeniedMessage` (если указано).|
+|responseMessage|"Thank you for your message! Our mod team will reply to you here as soon as possible."|Ответ бота пользователю при начале нового треда.|
+|smallAttachmentLimit|2097152|Лимит приложения для пересылки приложением в байтах (по умолчанию 2MB). Смотри `relaySmallAttachmentsAsAttachments` выше.|
+|snippetPrefix|"!!"|Префикс для использования шаблонов.|
+|snippetPrefixAnon|"!!!"|Префикс для анонимного использования шаблонов.|
+|status|"Message me for help"|Текст статуса бота.|
+|threadTimestamps|false|Если включено, то бот будет добавлять временную метку к сообщениям в треде в добавление к метке Discord. В веб-логах метка дублироваться не будет.|
+|typingProxy|false|Если включено, то бот будет показывать в треде "%botname% печатает" когда, обращающийся пользователь будет набирать сообщение.|
+|typingProxyReverse|false|Аналогично `typingProxy`, только в обратном направлении.|
+|url|Не указано|URL веб-сервера для вставки ссылок на приложения и логи. По умолчанию `IP:PORT`|
+|useNicknames|false|Если включено, то при обычном ответе вместо никнейма администратора будет указан никнейм на сервере-ящике.|
+|storage|"pg"|Тип используемой базы данных. Смотри https://knexjs.org/#Installation|
+|dbConnection|process.env.DATABASE_URL|Объект или строка соединения с базой данных. Смотри https://knexjs.org/#Installation-client|

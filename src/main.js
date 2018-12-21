@@ -1,28 +1,37 @@
 const Eris = require('eris');
+
 const moment = require('moment');
-const transliterate = require('transliteration');
+moment.locale('ru');
 
 const config = require('./config');
 const bot = require('./bot');
-const Queue = require('./queue');
+const {messageQueue} = require('./queue');
 const utils = require('./utils');
-const threadUtils = require('./threadUtils');
 const blocked = require('./data/blocked');
 const threads = require('./data/threads');
 
-const snippets = require('./plugins/snippets');
-const webserver = require('./plugins/webserver');
-const greeting = require('./plugins/greeting');
+const reply = require('./modules/reply');
+const close = require('./modules/close');
+const snippets = require('./modules/snippets');
+const logs = require('./modules/logs');
+const move = require('./modules/move');
+const block = require('./modules/block');
+const suspend = require('./modules/suspend');
+const webserver = require('./modules/webserver');
+const greeting = require('./modules/greeting');
+const typingProxy = require('./modules/typingProxy');
+const version = require('./modules/version');
+const newthread = require('./modules/newthread');
+const idModule = require('./modules/id');
+const alert = require('./modules/alert');
+
 const attachments = require("./data/attachments");
 const {ACCIDENTAL_THREAD_MESSAGES} = require('./data/constants');
-
-const messageQueue = new Queue();
-
-const addInboxServerCommand = (...args) => threadUtils.addInboxServerCommand(bot, ...args);
 
 // Once the bot has connected, set the status/"playing" message
 bot.on('ready', () => {
   bot.editStatus(null, {name: config.status});
+  console.log('Connected! Now listening to DMs.');
 });
 
 /**
@@ -32,15 +41,19 @@ bot.on('ready', () => {
  */
 bot.on('messageCreate', async msg => {
   if (! utils.messageIsOnInboxServer(msg)) return;
-  if (! utils.isStaff(msg.member)) return;
   if (msg.author.bot) return;
-  if (msg.content.startsWith(config.prefix) || msg.content.startsWith(config.snippetPrefix)) return;
 
   const thread = await threads.findByChannelId(msg.channel.id);
   if (! thread) return;
 
-  if (config.alwaysReply) {
+  if (msg.content.startsWith(config.prefix) || msg.content.startsWith(config.snippetPrefix)) {
+    // Save commands as "command messages"
+    if (msg.content.startsWith(config.snippetPrefix)) return; // Ignore snippets
+    thread.saveCommandMessage(msg);
+  } else if (config.alwaysReply) {
     // AUTO-REPLY: If config.alwaysReply is enabled, send all chat messages in thread channels as replies
+    if (! utils.isStaff(msg.member)) return; // Only staff are allowed to reply
+
     if (msg.attachments.length) await attachments.saveAttachmentsInMessage(msg);
     await thread.replyToUser(msg.member, msg.content.trim(), msg.attachments, config.alwaysReplyAnon || false);
     msg.delete();
@@ -74,7 +87,7 @@ bot.on('messageCreate', async msg => {
       thread = await threads.createNewThreadForUser(msg.author);
     }
 
-    await thread.receiveUserReply(msg);
+    if (thread) await thread.receiveUserReply(msg);
   });
 });
 
@@ -89,7 +102,7 @@ bot.on('messageUpdate', async (msg, oldMessage) => {
   if (await blocked.isBlocked(msg.author.id)) return;
 
   // Old message content doesn't persist between bot restarts
-  const oldContent = oldMessage && oldMessage.content || '*Unavailable due to bot restart*';
+  const oldContent = oldMessage && oldMessage.content || '*Недоступно из-за перезапуска бота*';
   const newContent = msg.content;
 
   // Ignore bogus edit events with no changes
@@ -98,8 +111,9 @@ bot.on('messageUpdate', async (msg, oldMessage) => {
   // 1) Edit in DMs
   if (msg.channel instanceof Eris.PrivateChannel) {
     const thread = await threads.findOpenThreadByUserId(msg.author.id);
-    const editMessage = utils.disableLinkPreviews(`**The user edited their message:**\n\`B:\` ${oldContent}\n\`A:\` ${newContent}`);
-
+    if (! thread) return;
+    
+    const editMessage = utils.disableLinkPreviews(`**Пользователь отредактировал сообщение:**\n\`до:\` ${oldContent}\n\`после:\` ${newContent}`);
     thread.postSystemMessage(editMessage);
   }
 
@@ -133,199 +147,62 @@ bot.on('messageDelete', async msg => {
 bot.on('messageCreate', async msg => {
   if (! utils.messageIsOnMainServer(msg)) return;
   if (! msg.mentions.some(user => user.id === bot.user.id)) return;
+  if (msg.author.bot) return;
 
-  // If the person who mentioned the modmail bot is also on the modmail server, ignore them
-  if (utils.getInboxGuild().members.get(msg.author.id)) return;
+  if (utils.messageIsOnInboxServer(msg)) {
+    // For same server setups, check if the person who pinged modmail is staff. If so, ignore the ping.
+    if (utils.isStaff(msg.member)) return;
+  } else {
+    // For separate server setups, check if the member is staff on the modmail server
+    const inboxMember = utils.getInboxGuild().members.get(msg.author.id);
+    if (inboxMember && utils.isStaff(inboxMember)) return;
+  }
 
   // If the person who mentioned the bot is blocked, ignore them
   if (await blocked.isBlocked(msg.author.id)) return;
 
-  bot.createMessage(utils.getLogChannel(bot).id, {
-    content: `@here Bot mentioned in ${msg.channel.mention} by **${msg.author.username}#${msg.author.discriminator}**: "${msg.cleanContent}"`,
+  let content;
+  const mainGuilds = utils.getMainGuilds();
+  const staffMention = (config.pingOnBotMention ? utils.getInboxMention() : '');
+
+  if (mainGuilds.length === 1) {
+    content = `${staffMention}Бот упомянут в ${msg.channel.mention} **${msg.author.username}#${msg.author.discriminator}**: "${msg.cleanContent}"`;
+  } else {
+    content = `${staffMention}Бот упомянут в ${msg.channel.mention} (${msg.channel.guild.name}) **${msg.author.username}#${msg.author.discriminator}**: "${msg.cleanContent}"`;
+  }
+
+  bot.createMessage(utils.getLogChannel().id, {
+    content,
     disableEveryone: false,
   });
-});
 
-// Mods can reply to modmail threads using !r or !reply
-// These messages get relayed back to the DM thread between the bot and the user
-addInboxServerCommand('reply', async (msg, args, thread) => {
-  if (! thread) return;
-
-  const text = args.join(' ').trim();
-  if (msg.attachments.length) await attachments.saveAttachmentsInMessage(msg);
-  await thread.replyToUser(msg.member, text, msg.attachments, false);
-  msg.delete();
-});
-
-bot.registerCommandAlias('r', 'reply');
-
-// Anonymous replies only show the role, not the username
-addInboxServerCommand('anonreply', async (msg, args, thread) => {
-  if (! thread) return;
-
-  const text = args.join(' ').trim();
-  if (msg.attachments.length) await attachments.saveAttachmentsInMessage(msg);
-  await thread.replyToUser(msg.member, text, msg.attachments, true);
-  msg.delete();
-});
-
-bot.registerCommandAlias('ar', 'anonreply');
-
-// Close a thread. Closing a thread saves a log of the channel's contents and then deletes the channel.
-addInboxServerCommand('close', async (msg, args, thread) => {
-  if (! thread) return;
-  await thread.close();
-
-  const logUrl = await thread.getLogUrl();
-  utils.postLog(utils.trimAll(`
-    Modmail thread with ${thread.user_name} (${thread.user_id}) was closed by ${msg.author.username}
-    Logs: ${logUrl}
-  `));
-});
-
-addInboxServerCommand('block', (msg, args, thread) => {
-  async function block(userId) {
-    const user = bot.users.get(userId);
-    await blocked.block(userId, (user ? `${user.username}#${user.discriminator}` : ''), msg.author.id);
-    msg.channel.createMessage(`Blocked <@${userId}> (id ${userId}) from modmail`);
+  // Send an auto-response to the mention, if enabled
+  if (config.botMentionResponse) {
+    bot.createMessage(msg.channel.id, config.botMentionResponse);
   }
-
-  if (args.length > 0) {
-    // User mention/id as argument
-    const userId = utils.getUserMention(args.join(' '));
-    if (! userId) return;
-    block(userId);
-  } else if (thread) {
-    // Calling !block without args in a modmail thread blocks the user of that thread
-    block(thread.user_id);
-  }
-});
-
-addInboxServerCommand('unblock', (msg, args, thread) => {
-  async function unblock(userId) {
-    await blocked.unblock(userId);
-    msg.channel.createMessage(`Unblocked <@${userId}> (id ${userId}) from modmail`);
-  }
-
-  if (args.length > 0) {
-    // User mention/id as argument
-    const userId = utils.getUserMention(args.join(' '));
-    if (! userId) return;
-    unblock(userId);
-  } else if (thread) {
-    // Calling !unblock without args in a modmail thread unblocks the user of that thread
-    unblock(thread.user_id);
-  }
-});
-
-addInboxServerCommand('logs', (msg, args, thread) => {
-  async function getLogs(userId) {
-    const userThreads = await threads.getClosedThreadsByUserId(userId);
-
-    // Descending by date
-    userThreads.sort((a, b) => {
-      if (a.created_at > b.created_at) return -1;
-      if (a.created_at < b.created_at) return 1;
-      return 0;
-    });
-
-    const threadLines = await Promise.all(userThreads.map(async thread => {
-      const logUrl = await thread.getLogUrl();
-      const formattedDate = moment.utc(thread.created_at).format('MMM Do [at] HH:mm [UTC]');
-      return `\`${formattedDate}\`: <${logUrl}>`;
-    }));
-
-    const message = `**Log files for <@${userId}>:**\n${threadLines.join('\n')}`;
-
-    // Send the list of logs in chunks of 15 lines per message
-    const lines = message.split('\n');
-    const chunks = utils.chunk(lines, 15);
-
-    let root = Promise.resolve();
-    chunks.forEach(lines => {
-      root = root.then(() => msg.channel.createMessage(lines.join('\n')));
-    });
-  }
-
-  if (args.length > 0) {
-    // User mention/id as argument
-    const userId = utils.getUserMention(args.join(' '));
-    if (! userId) return;
-    getLogs(userId);
-  } else if (thread) {
-    // Calling !logs without args in a modmail thread returns the logs of the user of that thread
-    getLogs(thread.user_id);
-  }
-});
-
-addInboxServerCommand('move', async (msg, args, thread) => {
-  if (! config.allowMove) return;
-
-  if (! thread) return;
-
-  const searchStr = args[0];
-  if (! searchStr || searchStr.trim() === '') return;
-
-  const normalizedSearchStr = transliterate.slugify(searchStr);
-
-  const categories = msg.channel.guild.channels.filter(c => {
-    // Filter to categories that are not the thread's current parent category
-    return (c instanceof Eris.CategoryChannel) && (c.id !== msg.channel.parentID);
-  });
-
-  if (categories.length === 0) return;
-
-  // See if any category name contains a part of the search string
-  const containsRankings = categories.map(cat => {
-    const normalizedCatName = transliterate.slugify(cat.name);
-
-    let i;
-    for (i = 1; i < normalizedSearchStr.length; i++) {
-      if (! normalizedCatName.includes(normalizedSearchStr.slice(0, i))) {
-        i--;
-        break;
-      }
-    }
-
-    return [cat, i];
-  });
-
-  // Sort by best match
-  containsRankings.sort((a, b) => {
-    return a[1] > b[1] ? -1 : 1;
-  });
-
-  if (containsRankings[0][1] === 0) {
-    thread.postNonLogMessage('No matching category');
-    return;
-  }
-
-  const targetCategory = containsRankings[0][0];
-
-  await bot.editChannel(thread.channel_id, {
-    parentID: targetCategory.id
-  });
-
-  thread.postSystemMessage(`Thread moved to ${targetCategory.name.toUpperCase()}`);
-});
-
-addInboxServerCommand('loglink', async (msg, args, thread) => {
-  if (! thread) return;
-  const logUrl = await thread.getLogUrl();
-  thread.postNonLogMessage(`Log URL: ${logUrl}`);
 });
 
 module.exports = {
   async start() {
-    // Load plugins
-    console.log('Loading plugins...');
+    // Load modules
+    console.log('Loading modules...');
+    await reply(bot);
+    await close(bot);
+    await logs(bot);
+    await block(bot);
+    await move(bot);
     await snippets(bot);
+    await suspend(bot);
     await greeting(bot);
     await webserver(bot);
+    await typingProxy(bot);
+    await version(bot);
+    await newthread(bot);
+    await idModule(bot);
+    await alert(bot);
 
+    // Connect to Discord
     console.log('Connecting to Discord...');
     await bot.connect();
-
-    console.log('Done! Now listening to DMs.');
   }
 };

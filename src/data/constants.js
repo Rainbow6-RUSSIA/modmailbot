@@ -1,7 +1,8 @@
 module.exports = {
   THREAD_STATUS: {
     OPEN: 1,
-    CLOSED: 2
+    CLOSED: 2,
+    SUSPENDED: 3
   },
 
   THREAD_MESSAGE_TYPE: {
@@ -9,15 +10,24 @@ module.exports = {
     CHAT: 2,
     FROM_USER: 3,
     TO_USER: 4,
-    LEGACY: 5
+    LEGACY: 5,
+    COMMAND: 6
   },
 
   ACCIDENTAL_THREAD_MESSAGES: [
+    'спасибо',
+    'спс',
+    'благодарю',
+    'хорошо',
+    'ок',
+    'без проблем',
+    
     'ok',
     'okay',
     'thanks',
     'ty',
     'k',
+    'kk',
     'thank you',
     'thanx',
     'thnx',

@@ -4,7 +4,6 @@ const moment = require('moment');
 const uuid = require('uuid');
 const humanizeDuration = require('humanize-duration');
 
-const bot = require('../bot');
 const knex = require('../knex');
 const config = require('../config');
 const utils = require('../utils');
@@ -37,16 +36,36 @@ async function findOpenThreadByUserId(userId) {
   return (thread ? new Thread(thread) : null);
 }
 
+function getHeaderGuildInfo(member) {
+  return {
+    nickname: member.nick || member.user.username,
+    joinDate: humanizeDuration(Date.now() - member.joinedAt, {largest: 2, round: true, language: 'ru' })
+  };
+}
+
 /**
  * Creates a new modmail thread for the specified user
  * @param {Eris.User} user
+ * @param {Boolean} quiet If true, doesn't ping mentionRole or reply with responseMessage
  * @returns {Promise<Thread>}
  * @throws {Error}
  */
-async function createNewThreadForUser(user) {
+async function createNewThreadForUser(user, quiet = false) {
   const existingThread = await findOpenThreadByUserId(user.id);
   if (existingThread) {
     throw new Error('Attempted to create a new thread for a user with an existing open thread!');
+  }
+
+  // Check the config for a requirement of account age to contact modmail,
+  // if the account is too young, return an optional message without making a new thread
+  if (config.requiredAccountAge) {
+    if (user.createdAt > moment() - config.requiredAccountAge * 3600000){
+      if (config.accountAgeDeniedMessage) {
+        const privateChannel = await user.getDMChannel();
+        await privateChannel.createMessage(config.accountAgeDeniedMessage);
+      }
+      return;
+    }
   }
 
   // Use the user's name+discrim for the thread channel's name
@@ -62,7 +81,7 @@ async function createNewThreadForUser(user) {
   // Attempt to create the inbox channel for this thread
   let createdChannel;
   try {
-    createdChannel = await utils.getInboxGuild().createChannel(channelName, null, 'New ModMail thread', config.newThreadCategoryId);
+    createdChannel = await utils.getInboxGuild().createChannel(channelName, null, 'Новый почтовый тред', config.newThreadCategoryId);
   } catch (err) {
     console.error(`Error creating modmail channel for ${user.username}#${user.discriminator}!`);
     throw err;
@@ -78,39 +97,83 @@ async function createNewThreadForUser(user) {
   });
 
   const newThread = await findById(newThreadId);
+  let responseMessageError = null;
 
-  // Ping moderators of the new thread
-  await newThread.postNonLogMessage({
-    content: `@here New modmail thread (${newThread.user_name})`,
-    disableEveryone: false
-  });
+  if (! quiet) {
+    // Ping moderators of the new thread
+    if (config.mentionRole) {
+      await newThread.postNonLogMessage({
+        content: `${utils.getInboxMention()}Новый почтовый тред (${newThread.user_name})`,
+        disableEveryone: false
+      });
+    }
 
-  // Post the log link to the beginning (but don't save it in thread messages)
-  const logUrl = await newThread.getLogUrl();
-  await newThread.postNonLogMessage(`Log URL: <${logUrl}>`);
-
-  // Send auto-reply to the user
-  if (config.responseMessage) {
-    newThread.postToUser(config.responseMessage);
+    // Send auto-reply to the user
+    if (config.responseMessage) {
+      try {
+        await newThread.postToUser(config.responseMessage);
+      } catch (err) {
+        responseMessageError = err;
+      }
+    }
   }
 
   // Post some info to the beginning of the new thread
-  const mainGuild = utils.getMainGuild();
-  const member = (mainGuild ? mainGuild.members.get(user.id) : null);
-  if (! member) console.log(`[INFO] Member ${user.id} not found in main guild ${config.mainGuildId}`);
+  const infoHeaderItems = [];
 
-  let mainGuildNickname = null;
-  if (member && member.nick) mainGuildNickname = member.nick;
-  else if (member && member.user) mainGuildNickname = member.user.username;
-  else if (member == null) mainGuildNickname = 'NOT ON SERVER';
+  // Account age
+  const accountAge = humanizeDuration(Date.now() - user.createdAt, {largest: 2, round: true, language: 'ru'});
+  infoHeaderItems.push(`ВОЗРАСТ АККАУНТА **${accountAge}**`);
 
-  if (mainGuildNickname == null) mainGuildNickname = 'UNKNOWN';
+  // User id (and mention, if enabled)
+  if (config.mentionUserInThreadHeader) {
+    infoHeaderItems.push(`ID **${user.id}** (<@!${user.id}>)`);
+  } else {
+    infoHeaderItems.push(`ID **${user.id}**`);
+  }
+
+  let infoHeader = infoHeaderItems.join(', ');
+
+  // Guild info
+  const guildInfoHeaderItems = new Map();
+  const mainGuilds = utils.getMainGuilds();
+
+  mainGuilds.forEach(guild => {
+    const member = guild.members.get(user.id);
+    if (! member) return;
+
+    const {nickname, joinDate} = getHeaderGuildInfo(member);
+    guildInfoHeaderItems.set(guild.name, [
+      `НИКНЕЙМ **${nickname}**`,
+      `ПРИСОЕДИНИЛСЯ **${joinDate}** назад`
+    ]);
+  });
+
+  guildInfoHeaderItems.forEach((items, guildName) => {
+    if (mainGuilds.length === 1) {
+      infoHeader += `\n${items.join(', ')}`;
+    } else {
+      infoHeader += `\n**[${guildName}]** ${items.join(', ')}`;
+    }
+  });
+
+  function declOfNum(n, titles) {
+    return titles[(n % 10 == 1 && n % 100 != 11 ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2)];
+  }
 
   const userLogCount = await getClosedThreadCountByUserId(user.id);
-  const accountAge = humanizeDuration(Date.now() - user.createdAt, {largest: 2});
-  const infoHeader = `ACCOUNT AGE **${accountAge}**, ID **${user.id}**, NICKNAME **${mainGuildNickname}**, LOGS **${userLogCount}**\n-------------------------------`;
+  if (userLogCount > 0) {
+    infoHeader += `\n\n"Этот пользователь имеет **${userLogCount}** обращени${declOfNum(userLogCount, ['е', 'я', 'й'])}. Используйте \`${config.prefix}logs\` чтобы посмотреть их.`;
+  }
+
+  infoHeader += '\n────────────────';
 
   await newThread.postSystemMessage(infoHeader);
+
+  // If there were errors sending a response to the user, note that
+  if (responseMessageError) {
+    await newThread.postSystemMessage(`*ВАЖНО:** Не удалось отправить автоответ пользователю. Ошибка: \`${responseMessageError.message}\``);
+  }
 
   // Return the thread
   return newThread;
@@ -129,20 +192,6 @@ async function createThreadInDB(data) {
   await knex('threads').insert(finalData);
 
   return threadId;
-}
-
-/**
- * @param {String} id
- * @returns {Promise<Thread>}
- */
-async function findById(id) {
-  const row = await knex('threads')
-    .where('id', id)
-    .first();
-
-  if (! row) return null;
-
-  return new Thread(row);
 }
 
 /**
@@ -165,6 +214,19 @@ async function findOpenThreadByChannelId(channelId) {
   const thread = await knex('threads')
     .where('channel_id', channelId)
     .where('status', THREAD_STATUS.OPEN)
+    .first();
+
+  return (thread ? new Thread(thread) : null);
+}
+
+/**
+ * @param {String} channelId
+ * @returns {Promise<Thread>}
+ */
+async function findSuspendedThreadByChannelId(channelId) {
+  const thread = await knex('threads')
+    .where('channel_id', channelId)
+    .where('status', THREAD_STATUS.SUSPENDED)
     .first();
 
   return (thread ? new Thread(thread) : null);
@@ -203,13 +265,27 @@ async function findOrCreateThreadForUser(user) {
   return createNewThreadForUser(user);
 }
 
+async function getThreadsThatShouldBeClosed() {
+  const now = moment.utc().format('YYYY-MM-DD HH:mm:ss');
+  const threads = await knex('threads')
+    .where('status', THREAD_STATUS.OPEN)
+    .whereNotNull('scheduled_close_at')
+    .where('scheduled_close_at', '<=', now)
+    .whereNotNull('scheduled_close_at')
+    .select();
+
+  return threads.map(thread => new Thread(thread));
+}
+
 module.exports = {
   findById,
   findOpenThreadByUserId,
   findByChannelId,
   findOpenThreadByChannelId,
+  findSuspendedThreadByChannelId,
   createNewThreadForUser,
   getClosedThreadsByUserId,
   findOrCreateThreadForUser,
+  getThreadsThatShouldBeClosed,
   createThreadInDB
 };

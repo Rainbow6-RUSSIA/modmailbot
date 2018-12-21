@@ -7,10 +7,10 @@ const config = require('./config');
 
 class BotError extends Error {}
 
-const userMentionRegex = /^<@\!?([0-9]+?)>$/;
+const userMentionRegex = /^<@!?([0-9]+?)>$/;
 
 let inboxGuild = null;
-let mainGuild = null;
+let mainGuilds = [];
 let logChannel = null;
 
 /**
@@ -23,17 +23,26 @@ function getInboxGuild() {
 }
 
 /**
- * @returns {Eris~Guild}
+ * @returns {Eris~Guild[]}
  */
-function getMainGuild() {
-  if (! mainGuild) mainGuild = bot.guilds.find(g => g.id === config.mainGuildId);
-  if (! mainGuild) console.warn('[WARN] The bot is not on the main server! If this is intentional, you can ignore this warning.');
-  return mainGuild;
+function getMainGuilds() {
+  if (mainGuilds.length === 0) {
+    mainGuilds = bot.guilds.filter(g => config.mainGuildId.includes(g.id));
+  }
+
+  if (mainGuilds.length !== config.mainGuildId.length) {
+    if (config.mainGuildId.length === 1) {
+      console.warn(`[WARN] The bot hasn't joined the main guild!`);
+    } else {
+      console.warn(`[WARN] The bot hasn't joined one or more main guilds!`);
+    }
+  }
+
+  return mainGuilds;
 }
 
 /**
  * Returns the designated log channel, or the default channel if none is set
- * @param bot
  * @returns {Eris~TextChannel}
  */
 function getLogChannel() {
@@ -58,7 +67,7 @@ function postLog(...args) {
 
 function postError(str) {
   getLogChannel().createMessage({
-    content: `@here **Error:** ${str.trim()}`,
+    content: `${getInboxMention()}**Ошибка:** ${str.trim()}`,
     disableEveryone: false
   });
 }
@@ -69,8 +78,20 @@ function postError(str) {
  * @returns {boolean}
  */
 function isStaff(member) {
-  if (! config.inboxServerPermission) return true;
-  return member.permission.has(config.inboxServerPermission);
+  if (config.inboxServerPermission.length === 0) return true;
+
+  return config.inboxServerPermission.some(perm => {
+    if (isSnowflake(perm)) {
+      // If perm is a snowflake, check it against the member's user id and roles
+      if (member.id === perm) return true;
+      if (member.roles.includes(perm)) return true;
+    } else {
+      // Otherwise assume perm is the name of a permission
+      return member.permission.has(perm);
+    }
+
+    return false;
+  });
 }
 
 /**
@@ -91,8 +112,9 @@ function messageIsOnInboxServer(msg) {
  */
 function messageIsOnMainServer(msg) {
   if (! msg.channel.guild) return false;
-  if (msg.channel.guild.id !== getMainGuild().id) return false;
-  return true;
+
+  return getMainGuilds()
+    .some(g => msg.channel.guild.id === g.id);
 }
 
 /**
@@ -104,7 +126,7 @@ async function formatAttachment(attachment) {
   filesize /= 1024;
 
   const attachmentUrl = await attachments.getUrl(attachment.id, attachment.filename);
-  return `**Attachment:** ${attachment.filename} (${filesize.toFixed(1)}KB)\n${attachmentUrl}`;
+  return `**Приложение:** ${attachment.filename} (${filesize.toFixed(1)}KB)\n${attachmentUrl}`;
 }
 
 /**
@@ -171,7 +193,7 @@ function getMainRole(member) {
 
 /**
  * Splits array items into chunks of the specified size
- * @param {Array} items
+ * @param {Array|String} items
  * @param {Number} chunkSize
  * @returns {Array}
  */
@@ -185,6 +207,11 @@ function chunk(items, chunkSize) {
   return result;
 }
 
+/**
+ * Trims every line in the string
+ * @param {String} str
+ * @returns {String}
+ */
 function trimAll(str) {
   return str
     .split('\n')
@@ -192,11 +219,83 @@ function trimAll(str) {
     .join('\n');
 }
 
+/**
+ * Turns a "delay string" such as "1h30m" to milliseconds
+ * @param {String} str
+ * @returns {Number}
+ */
+function convertDelayStringToMS(str) {
+  const regex = /^([0-9]+)\s*([dhms])?[a-z]*\s*/;
+  let match;
+  let ms = 0;
+
+  str = str.trim();
+
+  while (str !== '' && (match = str.match(regex)) !== null) {
+    if (match[2] === 'd') ms += match[1] * 1000 * 60 * 60 * 24;
+    else if (match[2] === 'h') ms += match[1] * 1000 * 60 * 60;
+    else if (match[2] === 's') ms += match[1] * 1000;
+    else if (match[2] === 'm' || ! match[2]) ms += match[1] * 1000 * 60;
+
+    str = str.slice(match[0].length);
+  }
+
+  // Invalid delay string
+  if (str !== '') {
+    return null;
+  }
+
+  return ms;
+}
+
+function getInboxMention() {
+  if (config.mentionRole == null) return '';
+  else if (config.mentionRole === 'here') return '@here ';
+  else if (config.mentionRole === 'everyone') return '@everyone ';
+  else return `<@&${config.mentionRole}> `;
+}
+
+function postSystemMessageWithFallback(channel, thread, text) {
+  if (thread) {
+    thread.postSystemMessage(text);
+  } else {
+    channel.createMessage(text);
+  }
+}
+
+/**
+ * A normalized way to set props in data models, fixing some inconsistencies between different DB drivers in knex
+ * @param {Object} target
+ * @param {Object} props
+ */
+function setDataModelProps(target, props) {
+  for (const prop in props) {
+    if (! props.hasOwnProperty(prop)) continue;
+    // DATETIME fields are always returned as Date objects in MySQL/MariaDB
+    if (props[prop] instanceof Date) {
+      // ...even when NULL, in which case the date's set to unix epoch
+      if (props[prop].getUTCFullYear() === 1970) {
+        target[prop] = null;
+      } else {
+        // Set the value as a string in the same format it's returned in SQLite
+        target[prop] = moment.utc(props[prop]).format('YYYY-MM-DD HH:mm:ss');
+      }
+    } else {
+      target[prop] = props[prop];
+    }
+  }
+}
+
+const snowflakeRegex = /^[0-9]{17,}$/;
+function isSnowflake(str) {
+  return snowflakeRegex.test(str);
+}
+
 module.exports = {
   BotError,
 
   getInboxGuild,
-  getMainGuild,
+  getMainGuilds,
   getLogChannel,
   postError,
   postLog,
@@ -212,7 +311,14 @@ module.exports = {
   disableLinkPreviews,
   getSelfUrl,
   getMainRole,
+  convertDelayStringToMS,
+  getInboxMention,
+  postSystemMessageWithFallback,
 
   chunk,
   trimAll,
+
+  setDataModelProps,
+
+  isSnowflake,
 };
