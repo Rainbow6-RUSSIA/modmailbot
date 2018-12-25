@@ -27,13 +27,6 @@ class Thread {
     utils.setDataModelProps(this, props);
   }
 
-  /**
-   * @param {Eris~Member} moderator
-   * @param {String} text
-   * @param {Eris~MessageFile[]} replyAttachments
-   * @param {Boolean} isAnonymous
-   * @returns {Promise<void>}
-   */
   async replyToUser(moderator, text, replyAttachments = [], isAnonymous = false) {
     // Username to reply with
     let modUsername, logModUsername;
@@ -155,19 +148,10 @@ class Thread {
     }
   }
 
-  /**
-   * @returns {Promise<PrivateChannel>}
-   */
   getDMChannel() {
     return bot.getDMChannel(this.user_id);
   }
 
-  /**
-   * @param {String} text
-   * @param {Eris~MessageFile|Eris~MessageFile[]} file
-   * @returns {Promise<Eris~Message>}
-   * @throws Error
-   */
   async postToUser(text, file = null) {
     // Try to open a DM channel with the user
     const dmChannel = await this.getDMChannel();
@@ -186,9 +170,6 @@ class Thread {
     return messages[0];
   }
 
-  /**
-   * @returns {Promise<Eris~Message>}
-   */
   async postToThreadChannel(...args) {
     try {
       if (typeof args[0] === 'string') {
@@ -212,11 +193,6 @@ class Thread {
     }
   }
 
-  /**
-   * @param {String} text
-   * @param {*} args
-   * @returns {Promise<void>}
-   */
   async postSystemMessage(text, ...args) {
     const msg = await this.postToThreadChannel(text, ...args);
     await this.addThreadMessageToDB({
@@ -229,18 +205,10 @@ class Thread {
     });
   }
 
-  /**
-   * @param {*} args
-   * @returns {Promise<void>}
-   */
   async postNonLogMessage(...args) {
     await this.postToThreadChannel(...args);
   }
 
-  /**
-   * @param {Eris.Message} msg
-   * @returns {Promise<void>}
-   */
   async saveChatMessage(msg) {
     return this.addThreadMessageToDB({
       message_type: THREAD_MESSAGE_TYPE.CHAT,
@@ -263,10 +231,6 @@ class Thread {
     });
   }
 
-  /**
-   * @param {Eris.Message} msg
-   * @returns {Promise<void>}
-   */
   async updateChatMessage(msg) {
     await knex('thread_messages')
       .where('thread_id', this.id)
@@ -276,10 +240,6 @@ class Thread {
       });
   }
 
-  /**
-   * @param {String} messageId
-   * @returns {Promise<void>}
-   */
   async deleteChatMessage(messageId) {
     await knex('thread_messages')
       .where('thread_id', this.id)
@@ -287,10 +247,6 @@ class Thread {
       .delete();
   }
 
-  /**
-   * @param {Object} data
-   * @returns {Promise<void>}
-   */
   async addThreadMessageToDB(data) {
     await knex('thread_messages').insert({
       thread_id: this.id,
@@ -300,9 +256,6 @@ class Thread {
     });
   }
 
-  /**
-   * @returns {Promise<ThreadMessage[]>}
-   */
   async getThreadMessages() {
     const threadMessages = await knex('thread_messages')
       .where('thread_id', this.id)
@@ -313,9 +266,6 @@ class Thread {
     return threadMessages.map(row => new ThreadMessage(row));
   }
 
-  /**
-   * @returns {Promise<void>}
-   */
   async close(silent = false) {
     if (! silent) {
       console.log(`Closing thread ${this.id}`);
@@ -337,11 +287,6 @@ class Thread {
     }
   }
 
-  /**
-   * @param {String} time
-   * @param {Eris~User} user
-   * @returns {Promise<void>}
-   */
   async scheduleClose(time, user) {
     await knex('threads')
       .where('id', this.id)
@@ -352,9 +297,6 @@ class Thread {
       });
   }
 
-  /**
-   * @returns {Promise<void>}
-   */
   async cancelScheduledClose() {
     await knex('threads')
       .where('id', this.id)
@@ -365,9 +307,6 @@ class Thread {
       });
   }
 
-  /**
-   * @returns {Promise<void>}
-   */
   async suspend() {
     await knex('threads')
       .where('id', this.id)
@@ -376,9 +315,6 @@ class Thread {
       });
   }
 
-  /**
-   * @returns {Promise<void>}
-   */
   async unsuspend() {
     await knex('threads')
       .where('id', this.id)
@@ -387,10 +323,6 @@ class Thread {
       });
   }
 
-  /**
-   * @param {String} userId
-   * @returns {Promise<void>}
-   */
   async setAlert(userId) {
     await knex('threads')
       .where('id', this.id)
@@ -399,9 +331,6 @@ class Thread {
       });
   }
 
-  /**
-   * @returns {Promise<String>}
-   */
   getLogUrl() {
     return utils.getSelfUrl(`logs/${this.id}`);
   }
