@@ -1,4 +1,6 @@
-const http = require('http');
+// const http = require('http');
+const app = reqiure('express')();
+const jwt = require('express-jwt');
 const mime = require('mime');
 const url = require('url');
 const fs = require('fs');
@@ -71,22 +73,25 @@ function serveAttachments(res, pathParts) {
 }
 
 module.exports = () => {
-  const server = http.createServer((req, res) => {
-    const parsedUrl = url.parse(`http://${req.url}`);
-    const pathParts = parsedUrl.path.split('/').filter(v => v !== '');
+  // const server = http.createServer((req, res) => {
+  //   const parsedUrl = url.parse(`http://${req.url}`);
+  //   const pathParts = parsedUrl.path.split('/').filter(v => v !== '');
 
-    if (parsedUrl.path.startsWith('/logs/')) {
-      serveLogs(res, pathParts);
-    } else if (parsedUrl.path.startsWith('/attachments/')) {
-      serveAttachments(res, pathParts);
-    } else {
-      notfound(res);
-    }
-  });
+  //   if (parsedUrl.path.startsWith('/logs/')) {
+  //     serveLogs(res, pathParts);
+  //   } else if (parsedUrl.path.startsWith('/attachments/')) {
+  //     serveAttachments(res, pathParts);
+  //   } else {
+  //     notfound(res);
+  //   }
+  // });
+  app.get('/logs/:id', jwt({secret: process.env["256B_KEY"]}))
 
-  server.on('error', err => {
+  app.get('/attachments/:id', jwt({secret: process.env["256B_KEY"]}))
+
+  app.on('error', err => {
     console.log('[WARN] Web server error:', err.message);
   });
 
-  server.listen(config.port);
+  app.listen(config.port);
 };

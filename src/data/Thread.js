@@ -91,17 +91,13 @@ class Thread {
     }
   }
 
-  /**
-   * @param {Eris~Message} msg
-   * @returns {Promise<void>}
-   */
   async receiveUserReply(msg) {
     let content = msg.content;
     if (msg.content.trim() === '' && msg.embeds.length) {
       content = '<сообщение содержит встраиваемый контент>';
     }
 
-    let threadContent = `**${msg.author.username}#${msg.author.discriminator}:** ${content}`;
+    let threadContent = `**${msg.author.tag}:** ${content}`;
     let logContent = msg.content;
 
     if (config.threadTimestamps) {
@@ -149,7 +145,7 @@ class Thread {
   }
 
   getDMChannel() {
-    return bot.getDMChannel(this.user_id);
+    return bot.users.fetch(this.user_id);
   }
 
   async postToUser(text, file = null) {
@@ -159,28 +155,28 @@ class Thread {
       throw new Error('Не удается открыть ЛС с пользователем. Он, возможно, заблокировал бота или повысил настройки приватности.');
     }
 
-    // Send the DM
-    const chunks = utils.chunk(text, 2000);
-    const messages = await Promise.all(chunks.map((chunk, i) => {
-      return dmChannel.createMessage(
-        chunk,
-        (i === chunks.length - 1 ? file : undefined)  // Only send the file with the last message
-      );
-    }));
+    const messages = await dmChannel.send(text, {
+      split: true,
+      files: file,
+    })
+    // // Send the DM
+    // const chunks = utils.chunk(text, 2000);
+    // const messages = await Promise.all(chunks.map((chunk, i) => {
+    //   return dmChannel.createMessage(
+    //     chunk,
+    //     (i === chunks.length - 1 ? file : undefined)  // Only send the file with the last message
+    //   );
+    // }));
     return messages[0];
   }
 
   async postToThreadChannel(...args) {
     try {
       if (typeof args[0] === 'string') {
-        const chunks = utils.chunk(args[0], 2000);
-        const messages = await Promise.all(chunks.map((chunk, i) => {
-          const rest = (i === chunks.length - 1 ? args.slice(1) : []); // Only send the rest of the args (files, embeds) with the last message
-          return bot.createMessage(this.channel_id, chunk, ...rest);
-        }));
+        const messages = await bot.channels.get(this.channel_id).send(args[0]);
         return messages[0];
       } else {
-        return bot.createMessage(this.channel_id, ...args);
+        return await bot.channels.get(this.channel_id).send(...args);
       }
     } catch (e) {
       // Channel not found
@@ -280,7 +276,7 @@ class Thread {
       });
 
     // Delete channel
-    const channel = bot.getChannel(this.channel_id);
+    const channel = bot.channels.get(this.channel_id);
     if (channel) {
       console.log(`Deleting channel ${this.channel_id}`);
       await channel.delete('Тред закрыт');

@@ -66,6 +66,7 @@ const defaultConfig = {
   "ignoreAccidentalThreads": false,
   "threadTimestamps": false,
   "allowMove": false,
+  "syncPerms": false,
   "typingProxy": false,
   "typingProxyReverse": false,
   "mentionUserInThreadHeader": false,
@@ -87,7 +88,7 @@ const defaultConfig = {
   "knex": null,
 
   "logDir": path.join(__dirname, '..', 'logs'),
-  
+
   "storage": "pg",
   "dbConnection": process.env.DATABASE_URL,
 };

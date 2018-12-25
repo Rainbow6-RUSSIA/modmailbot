@@ -1,4 +1,3 @@
-const Eris = require('eris');
 const bot = require('./bot');
 const moment = require('moment');
 const publicIp = require('public-ip');
@@ -13,18 +12,12 @@ let inboxGuild = null;
 let mainGuilds = [];
 let logChannel = null;
 
-/**
- * @returns {Eris~Guild}
- */
 function getInboxGuild() {
-  if (! inboxGuild) inboxGuild = bot.guilds.find(g => g.id === config.mailGuildId);
+  if (! inboxGuild) inboxGuild = bot.guilds.get(config.mailGuildId);
   if (! inboxGuild) throw new BotError('The bot is not on the modmail (inbox) server!');
   return inboxGuild;
 }
 
-/**
- * @returns {Eris~Guild[]}
- */
 function getMainGuilds() {
   if (mainGuilds.length === 0) {
     mainGuilds = bot.guilds.filter(g => config.mainGuildId.includes(g.id));
@@ -41,10 +34,6 @@ function getMainGuilds() {
   return mainGuilds;
 }
 
-/**
- * Returns the designated log channel, or the default channel if none is set
- * @returns {Eris~TextChannel}
- */
 function getLogChannel() {
   const inboxGuild = getInboxGuild();
 
@@ -62,21 +51,15 @@ function getLogChannel() {
 }
 
 function postLog(...args) {
-  getLogChannel().createMessage(...args);
+  getLogChannel().send(...args);
 }
 
 function postError(str) {
-  getLogChannel().createMessage({
-    content: `${getInboxMention()}**Ошибка:** ${str.trim()}`,
-    disableEveryone: false
+  getLogChannel().send(`${getInboxMention()}**Ошибка:** ${str.trim()}`, {
+    disableEveryone: true,
   });
 }
 
-/**
- * Returns whether the given member has permission to use modmail commands
- * @param member
- * @returns {boolean}
- */
 function isStaff(member) {
   if (config.inboxServerPermission.length === 0) return true;
 
@@ -84,32 +67,22 @@ function isStaff(member) {
     if (isSnowflake(perm)) {
       // If perm is a snowflake, check it against the member's user id and roles
       if (member.id === perm) return true;
-      if (member.roles.includes(perm)) return true;
+      if (member.roles.keyArray().includes(perm)) return true;
     } else {
       // Otherwise assume perm is the name of a permission
-      return member.permission.has(perm);
+      return member.hasPermission(perm);
     }
 
     return false;
   });
 }
 
-/**
- * Returns whether the given message is on the inbox server
- * @param msg
- * @returns {boolean}
- */
 function messageIsOnInboxServer(msg) {
   if (! msg.channel.guild) return false;
   if (msg.channel.guild.id !== getInboxGuild().id) return false;
   return true;
 }
 
-/**
- * Returns whether the given message is on the main server
- * @param msg
- * @returns {boolean}
- */
 function messageIsOnMainServer(msg) {
   if (! msg.channel.guild) return false;
 
@@ -117,10 +90,6 @@ function messageIsOnMainServer(msg) {
     .some(g => msg.channel.guild.id === g.id);
 }
 
-/**
- * @param attachment
- * @returns {Promise<string>}
- */
 async function formatAttachment(attachment) {
   let filesize = attachment.size || 0;
   filesize /= 1024;
@@ -129,11 +98,6 @@ async function formatAttachment(attachment) {
   return `**Приложение:** ${attachment.filename} (${filesize.toFixed(1)}KB)\n${attachmentUrl}`;
 }
 
-/**
- * Returns the user ID of the user mentioned in str, if any
- * @param {String} str
- * @returns {String|null}
- */
 function getUserMention(str) {
   str = str.trim();
 
@@ -148,28 +112,14 @@ function getUserMention(str) {
   return null;
 }
 
-/**
- * Returns the current timestamp in an easily readable form
- * @returns {String}
- */
 function getTimestamp(...momentArgs) {
   return moment.utc(...momentArgs).format('HH:mm');
 }
 
-/**
- * Disables link previews in the given string by wrapping links in < >
- * @param {String} str
- * @returns {String}
- */
 function disableLinkPreviews(str) {
   return str.replace(/(^|[^<])(https?:\/\/\S+)/ig, '$1<$2>');
 }
 
-/**
- * Returns a URL to the bot's web server
- * @param {String} path
- * @returns {Promise<String>}
- */
 async function getSelfUrl(path = '') {
   if (config.url) {
     return `${config.url}/${path}`;
@@ -180,23 +130,12 @@ async function getSelfUrl(path = '') {
   }
 }
 
-/**
- * Returns the highest hoisted role of the given member
- * @param {Eris~Member} member
- * @returns {Eris~Role}
- */
 function getMainRole(member) {
-  const roles = member.roles.map(id => member.guild.roles.get(id));
-  roles.sort((a, b) => a.position > b.position ? -1 : 1);
-  return roles.find(r => r.hoist);
+  // const roles = member.roles.map(id => member.guild.roles.get(id));
+  // roles.sort((a, b) => a.position > b.position ? -1 : 1);
+  return member.roles.hoist;
 }
 
-/**
- * Splits array items into chunks of the specified size
- * @param {Array|String} items
- * @param {Number} chunkSize
- * @returns {Array}
- */
 function chunk(items, chunkSize) {
   const result = [];
 
@@ -207,11 +146,6 @@ function chunk(items, chunkSize) {
   return result;
 }
 
-/**
- * Trims every line in the string
- * @param {String} str
- * @returns {String}
- */
 function trimAll(str) {
   return str
     .split('\n')
@@ -219,11 +153,6 @@ function trimAll(str) {
     .join('\n');
 }
 
-/**
- * Turns a "delay string" such as "1h30m" to milliseconds
- * @param {String} str
- * @returns {Number}
- */
 function convertDelayStringToMS(str) {
   const regex = /^([0-9]+)\s*([dhms])?[a-z]*\s*/;
   let match;
@@ -259,15 +188,10 @@ function postSystemMessageWithFallback(channel, thread, text) {
   if (thread) {
     thread.postSystemMessage(text);
   } else {
-    channel.createMessage(text);
+    channel.send(text);
   }
 }
 
-/**
- * A normalized way to set props in data models, fixing some inconsistencies between different DB drivers in knex
- * @param {Object} target
- * @param {Object} props
- */
 function setDataModelProps(target, props) {
   for (const prop in props) {
     if (! props.hasOwnProperty(prop)) continue;
