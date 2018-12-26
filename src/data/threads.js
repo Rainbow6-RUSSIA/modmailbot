@@ -1,4 +1,3 @@
-const Eris = require('eris');
 const transliterate = require('transliteration');
 const moment = require('moment');
 const uuid = require('uuid');
@@ -43,13 +42,6 @@ function getHeaderGuildInfo(member) {
   };
 }
 
-/**
- * Creates a new modmail thread for the specified user
- * @param {Eris.User} user
- * @param {Boolean} quiet If true, doesn't ping mentionRole or reply with responseMessage
- * @returns {Promise<Thread>}
- * @throws {Error}
- */
 async function createNewThreadForUser(user, quiet = false) {
   const existingThread = await findOpenThreadByUserId(user.id);
   if (existingThread) {

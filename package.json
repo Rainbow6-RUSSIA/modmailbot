@@ -11,6 +11,7 @@
   },
   "author": "",
   "dependencies": {
+    "auto-bind": "^2.0.0",
     "discord-akairo": "https://github.com/1Computer1/discord-akairo",
     "discord.js": "https://github.com/discordjs/discord.js",
     "dotenv": "^6.1.0",
@@ -24,6 +25,7 @@
     "pg": "^7.6.1",
     "public-ip": "^2.0.1",
     "transliteration": "^1.6.2",
+    "useragent": "^2.3.0",
     "uuid": "^3.1.0"
   },
   "devDependencies": {

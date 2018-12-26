@@ -30,12 +30,3 @@ class Alert extends Command {
 }
 
 module.exports = Alert;
-
-
-// module.exports = bot => {
-//   const addInboxServerCommand = (...args) => threadUtils.addInboxServerCommand(bot, ...args);
-
-//   addInboxServerCommand('alert', async (msg, args, thread) => {
-
-//   });
-// };

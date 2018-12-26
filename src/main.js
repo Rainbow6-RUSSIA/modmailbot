@@ -5,7 +5,7 @@ moment.locale('ru');
 
 const config = require('./config');
 const bot = require('./bot');
-const {messageQueue} = require('./queue');
+const {messageQueue} = require('./queue'); // WTF???
 const utils = require('./utils');
 const blocked = require('./data/blocked');
 const threads = require('./data/threads');
@@ -27,12 +27,6 @@ const webserver = require('./modules/webserver');
 
 const attachments = require("./data/attachments");
 const {ACCIDENTAL_THREAD_MESSAGES} = require('./data/constants');
-
-// Once the bot has connected, set the status/"playing" message
-bot.on('ready', () => {
-  bot.editStatus(null, {name: config.status});
-  console.log('Connected! Now listening to DMs.');
-});
 
 /**
  * When a moderator posts in a modmail thread...

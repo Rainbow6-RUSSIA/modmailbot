@@ -18,6 +18,5 @@ async function getThread(msg) {
 // }
 
 module.exports = {
-  addInboxServerCommand,
   getThread,
 };

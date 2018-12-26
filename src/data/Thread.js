@@ -144,8 +144,8 @@ class Thread {
     }
   }
 
-  getDMChannel() {
-    return bot.users.fetch(this.user_id);
+  async getDMChannel() {
+    return (await bot.users.fetch(this.user_id)).createDM();
   }
 
   async postToUser(text, file = null) {
