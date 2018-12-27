@@ -41,7 +41,7 @@ const legacyMigrator = require('./legacy/legacyMigrator');
 process.on('unhandledRejection', err => {
   if (err instanceof utils.BotError || (err && err.code)) {
     // We ignore stack traces for BotErrors (the message has enough info) and network errors from Eris (their stack traces are unreadably long)
-    console.error(`Error: ${err.message}`);
+    console.error(`Error: ${err.message}\n${err.stack}`);
   } else {
     console.error(err);
   }

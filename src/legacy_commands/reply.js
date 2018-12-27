@@ -27,5 +27,5 @@ module.exports = bot => {
     msg.delete();
   });
 
-  bot.registerCommandAlias('ar', 'anonreply');
+  bot.registerCommandAlias('ar', 'anonreply'); // TODO: Implement after editing
 };

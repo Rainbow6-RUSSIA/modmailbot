@@ -1,5 +1,6 @@
 const { Inhibitor } = require('discord-akairo');
-const blocked = require('../../data/blocked');
+const utils = require("../utils");
+const blocked = require('../data/blocked');
 const autoBind = require('auto-bind');
 
 class Blacklist extends Inhibitor {
@@ -11,7 +12,7 @@ class Blacklist extends Inhibitor {
     }
 
     async exec(message) {
-        return await blocked.isBlocked(message.author.id);
+        return (await blocked.isBlocked(message.author.id)) && (! utils.isStaff(message.author.id));
     }
 }
 

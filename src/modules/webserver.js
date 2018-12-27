@@ -1,5 +1,5 @@
 // const http = require('http');
-const app = reqiure('express')();
+const app = require('express')();
 const jwt = require('express-jwt');
 const mime = require('mime');
 const url = require('url');
@@ -28,7 +28,6 @@ function checkAccess(req, res, next) {
   }
 }
 
-module.exports = () => {
   // const server = http.createServer((req, res) => {
   //   const parsedUrl = url.parse(`http://${req.url}`);
   //   const pathParts = parsedUrl.path.split('/').filter(v => v !== '');
@@ -125,4 +124,3 @@ module.exports = () => {
   });
 
   app.listen(config.port);
-};

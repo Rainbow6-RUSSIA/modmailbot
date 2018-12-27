@@ -5,7 +5,7 @@ const { Listener } = require('discord-akairo');
 
 class Typing extends Listener {
     constructor() {
-        super('ready', {
+        super('typing', {
             emitter: 'client',
             event: 'typingStart'
         });
