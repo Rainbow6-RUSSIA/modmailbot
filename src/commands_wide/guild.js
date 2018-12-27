@@ -6,7 +6,6 @@ class Guild extends Command {
   constructor() {
     super('guild', {
       channel: 'guild',
-      prefix: '',
       condition: (msg) => utils.messageIsOnInboxServer(msg)
     });
   }

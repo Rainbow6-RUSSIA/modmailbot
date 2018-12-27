@@ -1,6 +1,5 @@
 const moment = require('moment');
 
-const bot = require('../bot');
 const knex = require('../knex');
 const utils = require('../utils');
 const config = require('../config');
@@ -10,21 +9,10 @@ const ThreadMessage = require('./ThreadMessage');
 
 const {THREAD_MESSAGE_TYPE, THREAD_STATUS} = require('./constants');
 
-/**
- * @property {String} id
- * @property {Number} status
- * @property {String} user_id
- * @property {String} user_name
- * @property {String} channel_id
- * @property {String} scheduled_close_at
- * @property {String} scheduled_close_id
- * @property {String} scheduled_close_name
- * @property {String} alert_id
- * @property {String} created_at
- */
 class Thread {
   constructor(props) {
     utils.setDataModelProps(this, props);
+    this.bot = require('../bot');
   }
 
   async replyToUser(moderator, text, replyAttachments = [], isAnonymous = false) {
@@ -145,7 +133,7 @@ class Thread {
   }
 
   async getDMChannel() {
-    return (await bot.users.fetch(this.user_id)).createDM();
+    return (await this.bot.users.get(this.user_id)).createDM();
   }
 
   async postToUser(text, file = null) {
@@ -154,7 +142,7 @@ class Thread {
     if (! dmChannel) {
       throw new Error('Не удается открыть ЛС с пользователем. Он, возможно, заблокировал бота или повысил настройки приватности.');
     }
-
+    if (! text) return;
     const messages = await dmChannel.send(text, {
       split: true,
       files: file,
@@ -171,22 +159,20 @@ class Thread {
   }
 
   async postToThreadChannel(...args) {
-    try {
-      if (typeof args[0] === 'string') {
-        const messages = await bot.channels.get(this.channel_id).send(args[0]);
-        return messages[0];
-      } else {
-        return await bot.channels.get(this.channel_id).send(...args);
-      }
-    } catch (e) {
-      // Channel not found
-      if (e.code === 10003) {
+      const channel = this.bot.channels.get(this.channel_id);
+      if (! channel) {
         console.log(`[INFO] Failed to send message to thread channel for ${this.user_name} because the channel no longer exists. Auto-closing the thread.`);
         this.close(true);
-      } else {
-        throw e;
+        return;
       }
-    }
+      if (typeof args[0] === 'string') {
+        if (! args[0]) return;
+        const message = await channel.send(args[0]);
+        return message;
+      } else {
+        if (! args[0]) return;
+        return (await channel.send(...args))[0];
+      }
   }
 
   async postSystemMessage(text, ...args) {
@@ -276,7 +262,7 @@ class Thread {
       });
 
     // Delete channel
-    const channel = bot.channels.get(this.channel_id);
+    const channel = this.bot.channels.get(this.channel_id);
     if (channel) {
       console.log(`Deleting channel ${this.channel_id}`);
       await channel.delete('Тред закрыт');

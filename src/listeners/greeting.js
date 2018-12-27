@@ -29,8 +29,6 @@ class Greeting extends Listener {
         fs.readFile(this.attachment, (err, data) => {
           DM.send(this.message || '', {files: {attachment: data, name: filename}});
         });
-      } else {
-        DM.send(this.message || '');
       }
     }
 }

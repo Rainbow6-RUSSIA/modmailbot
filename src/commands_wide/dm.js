@@ -2,6 +2,7 @@ const { Command } = require('discord-akairo');
 const { messageQueue } = require('../queue');
 const { ACCIDENTAL_THREAD_MESSAGES } = require('../data/constants');
 const config = require('../config');
+const threads = require('../data/threads');
 
 class DM extends Command {
     constructor() {

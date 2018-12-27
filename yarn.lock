@@ -598,11 +598,11 @@ detect-file@^1.0.0:
 
 "discord-akairo@https://github.com/1Computer1/discord-akairo":
   version "8.0.0-dev"
-  resolved "https://github.com/1Computer1/discord-akairo#54ceeeaa0d162b75b87ff4786d75b66b2c8f104c"
+  resolved "https://github.com/1Computer1/discord-akairo#f06972b269c98da48b916dcd602272936dc66aec"
 
 "discord.js@https://github.com/discordjs/discord.js":
   version "12.0.0-dev"
-  resolved "https://github.com/discordjs/discord.js#8286d1a0fc3e86a10b7d5f977836b0e0fe611c27"
+  resolved "https://github.com/discordjs/discord.js#8a76cc5c725ffcfe8131c652de3d16be1f51439a"
   dependencies:
     form-data "^2.3.2"
     node-fetch "^2.1.2"

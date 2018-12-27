@@ -1,5 +1,7 @@
 const { Listener } = require('discord-akairo');
 const threads = require('../data/threads');
+const blocked = require('../data/blocked');
+const utils = require('../utils');
 
 class Update extends Listener {
   constructor() {

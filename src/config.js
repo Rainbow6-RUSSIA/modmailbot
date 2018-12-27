@@ -44,6 +44,7 @@ const defaultConfig = {
   "mailGuildId": null,
   "mainGuildId": null,
   "logChannelId": null,
+  "ownerId": null,
 
   "prefix": "!",
   "snippetPrefix": "!!",

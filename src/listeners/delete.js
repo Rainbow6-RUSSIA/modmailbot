@@ -1,4 +1,6 @@
 const { Listener } = require('discord-akairo');
+const threads = require('../data/threads');
+const utils = require('../utils');
 
 class Delete extends Listener {
     constructor() {
@@ -8,7 +10,7 @@ class Delete extends Listener {
         });
     }
 
-    async exec() {
+    async exec(msg) {
         if (! msg.author) return;
         if (msg.author.bot) return;
         if (! utils.messageIsOnInboxServer(msg)) return;

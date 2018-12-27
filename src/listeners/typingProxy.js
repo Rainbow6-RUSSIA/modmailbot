@@ -20,10 +20,8 @@ class Typing extends Listener {
         if (! thread) return;
 
         try {
-          await channel.startTyping();
-          setTimeout(() => {
-            channel.stopTyping(true);
-          }, 10000);
+          /* await */ channel.startTyping();
+          channel.stopTyping();
         } catch (e) {}
       }
 
@@ -35,10 +33,8 @@ class Typing extends Listener {
         if (! dmChannel) return;
 
         try {
-          await dmChannel.startTyping();
-          setTimeout(() => {
-            channel.stopTyping(true);
-          }, 10000);
+          /* await */ dmChannel.startTyping();
+          dmChannel.stopTyping();
         } catch (e) {}
       }
     }
