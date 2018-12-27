@@ -1,4 +1,3 @@
-const Eris = require('eris');
 const transliterate = require('transliteration');
 const moment = require('moment');
 const uuid = require('uuid');
@@ -43,13 +42,6 @@ function getHeaderGuildInfo(member) {
   };
 }
 
-/**
- * Creates a new modmail thread for the specified user
- * @param {Eris.User} user
- * @param {Boolean} quiet If true, doesn't ping mentionRole or reply with responseMessage
- * @returns {Promise<Thread>}
- * @throws {Error}
- */
 async function createNewThreadForUser(user, quiet = false) {
   const existingThread = await findOpenThreadByUserId(user.id);
   if (existingThread) {
@@ -62,7 +54,7 @@ async function createNewThreadForUser(user, quiet = false) {
     if (user.createdAt > moment() - config.requiredAccountAge * 3600000){
       if (config.accountAgeDeniedMessage) {
         const privateChannel = await user.getDMChannel();
-        await privateChannel.createMessage(config.accountAgeDeniedMessage);
+        await privateChannel.send(config.accountAgeDeniedMessage);
       }
       return;
     }
@@ -81,7 +73,7 @@ async function createNewThreadForUser(user, quiet = false) {
   // Attempt to create the inbox channel for this thread
   let createdChannel;
   try {
-    createdChannel = await utils.getInboxGuild().createChannel(channelName, null, 'Новый почтовый тред', config.newThreadCategoryId);
+    createdChannel = await utils.getInboxGuild().channels.create(channelName, {parent: config.newThreadCategoryId, reason: 'Новый почтовый тред'});
   } catch (err) {
     console.error(`Error creating modmail channel for ${user.username}#${user.discriminator}!`);
     throw err;

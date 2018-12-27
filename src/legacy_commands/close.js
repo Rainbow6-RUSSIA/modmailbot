@@ -107,6 +107,7 @@ module.exports = bot => {
     `));
   });
 
+  // TODO: MOVE TO LISTENERS channelDelete
   // Auto-close threads if their channel is deleted
   bot.on('channelDelete', async (channel) => {
     if (! (channel instanceof Eris.TextChannel)) return;

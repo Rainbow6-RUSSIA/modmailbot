@@ -1,6 +1,5 @@
 const moment = require('moment');
 
-const bot = require('../bot');
 const knex = require('../knex');
 const utils = require('../utils');
 const config = require('../config');
@@ -10,30 +9,12 @@ const ThreadMessage = require('./ThreadMessage');
 
 const {THREAD_MESSAGE_TYPE, THREAD_STATUS} = require('./constants');
 
-/**
- * @property {String} id
- * @property {Number} status
- * @property {String} user_id
- * @property {String} user_name
- * @property {String} channel_id
- * @property {String} scheduled_close_at
- * @property {String} scheduled_close_id
- * @property {String} scheduled_close_name
- * @property {String} alert_id
- * @property {String} created_at
- */
 class Thread {
   constructor(props) {
     utils.setDataModelProps(this, props);
+    this.bot = require('../bot');
   }
 
-  /**
-   * @param {Eris~Member} moderator
-   * @param {String} text
-   * @param {Eris~MessageFile[]} replyAttachments
-   * @param {Boolean} isAnonymous
-   * @returns {Promise<void>}
-   */
   async replyToUser(moderator, text, replyAttachments = [], isAnonymous = false) {
     // Username to reply with
     let modUsername, logModUsername;
@@ -98,17 +79,13 @@ class Thread {
     }
   }
 
-  /**
-   * @param {Eris~Message} msg
-   * @returns {Promise<void>}
-   */
   async receiveUserReply(msg) {
     let content = msg.content;
     if (msg.content.trim() === '' && msg.embeds.length) {
       content = '<сообщение содержит встраиваемый контент>';
     }
 
-    let threadContent = `**${msg.author.username}#${msg.author.discriminator}:** ${content}`;
+    let threadContent = `**${msg.author.tag}:** ${content}`;
     let logContent = msg.content;
 
     if (config.threadTimestamps) {
@@ -155,68 +132,49 @@ class Thread {
     }
   }
 
-  /**
-   * @returns {Promise<PrivateChannel>}
-   */
-  getDMChannel() {
-    return bot.getDMChannel(this.user_id);
+  async getDMChannel() {
+    return (await this.bot.users.get(this.user_id)).createDM();
   }
 
-  /**
-   * @param {String} text
-   * @param {Eris~MessageFile|Eris~MessageFile[]} file
-   * @returns {Promise<Eris~Message>}
-   * @throws Error
-   */
   async postToUser(text, file = null) {
     // Try to open a DM channel with the user
     const dmChannel = await this.getDMChannel();
     if (! dmChannel) {
       throw new Error('Не удается открыть ЛС с пользователем. Он, возможно, заблокировал бота или повысил настройки приватности.');
     }
-
-    // Send the DM
-    const chunks = utils.chunk(text, 2000);
-    const messages = await Promise.all(chunks.map((chunk, i) => {
-      return dmChannel.createMessage(
-        chunk,
-        (i === chunks.length - 1 ? file : undefined)  // Only send the file with the last message
-      );
-    }));
+    if (! text) return;
+    const messages = await dmChannel.send(text, {
+      split: true,
+      files: file,
+    })
+    // // Send the DM
+    // const chunks = utils.chunk(text, 2000);
+    // const messages = await Promise.all(chunks.map((chunk, i) => {
+    //   return dmChannel.createMessage(
+    //     chunk,
+    //     (i === chunks.length - 1 ? file : undefined)  // Only send the file with the last message
+    //   );
+    // }));
     return messages[0];
   }
 
-  /**
-   * @returns {Promise<Eris~Message>}
-   */
   async postToThreadChannel(...args) {
-    try {
-      if (typeof args[0] === 'string') {
-        const chunks = utils.chunk(args[0], 2000);
-        const messages = await Promise.all(chunks.map((chunk, i) => {
-          const rest = (i === chunks.length - 1 ? args.slice(1) : []); // Only send the rest of the args (files, embeds) with the last message
-          return bot.createMessage(this.channel_id, chunk, ...rest);
-        }));
-        return messages[0];
-      } else {
-        return bot.createMessage(this.channel_id, ...args);
-      }
-    } catch (e) {
-      // Channel not found
-      if (e.code === 10003) {
+      const channel = this.bot.channels.get(this.channel_id);
+      if (! channel) {
         console.log(`[INFO] Failed to send message to thread channel for ${this.user_name} because the channel no longer exists. Auto-closing the thread.`);
         this.close(true);
-      } else {
-        throw e;
+        return;
       }
-    }
+      if (typeof args[0] === 'string') {
+        if (! args[0]) return;
+        const message = await channel.send(args[0]);
+        return message;
+      } else {
+        if (! args[0]) return;
+        return (await channel.send(...args))[0];
+      }
   }
 
-  /**
-   * @param {String} text
-   * @param {*} args
-   * @returns {Promise<void>}
-   */
   async postSystemMessage(text, ...args) {
     const msg = await this.postToThreadChannel(text, ...args);
     await this.addThreadMessageToDB({
@@ -229,18 +187,10 @@ class Thread {
     });
   }
 
-  /**
-   * @param {*} args
-   * @returns {Promise<void>}
-   */
   async postNonLogMessage(...args) {
     await this.postToThreadChannel(...args);
   }
 
-  /**
-   * @param {Eris.Message} msg
-   * @returns {Promise<void>}
-   */
   async saveChatMessage(msg) {
     return this.addThreadMessageToDB({
       message_type: THREAD_MESSAGE_TYPE.CHAT,
@@ -263,10 +213,6 @@ class Thread {
     });
   }
 
-  /**
-   * @param {Eris.Message} msg
-   * @returns {Promise<void>}
-   */
   async updateChatMessage(msg) {
     await knex('thread_messages')
       .where('thread_id', this.id)
@@ -276,10 +222,6 @@ class Thread {
       });
   }
 
-  /**
-   * @param {String} messageId
-   * @returns {Promise<void>}
-   */
   async deleteChatMessage(messageId) {
     await knex('thread_messages')
       .where('thread_id', this.id)
@@ -287,10 +229,6 @@ class Thread {
       .delete();
   }
 
-  /**
-   * @param {Object} data
-   * @returns {Promise<void>}
-   */
   async addThreadMessageToDB(data) {
     await knex('thread_messages').insert({
       thread_id: this.id,
@@ -300,9 +238,6 @@ class Thread {
     });
   }
 
-  /**
-   * @returns {Promise<ThreadMessage[]>}
-   */
   async getThreadMessages() {
     const threadMessages = await knex('thread_messages')
       .where('thread_id', this.id)
@@ -313,9 +248,6 @@ class Thread {
     return threadMessages.map(row => new ThreadMessage(row));
   }
 
-  /**
-   * @returns {Promise<void>}
-   */
   async close(silent = false) {
     if (! silent) {
       console.log(`Closing thread ${this.id}`);
@@ -330,18 +262,13 @@ class Thread {
       });
 
     // Delete channel
-    const channel = bot.getChannel(this.channel_id);
+    const channel = this.bot.channels.get(this.channel_id);
     if (channel) {
       console.log(`Deleting channel ${this.channel_id}`);
       await channel.delete('Тред закрыт');
     }
   }
 
-  /**
-   * @param {String} time
-   * @param {Eris~User} user
-   * @returns {Promise<void>}
-   */
   async scheduleClose(time, user) {
     await knex('threads')
       .where('id', this.id)
@@ -352,9 +279,6 @@ class Thread {
       });
   }
 
-  /**
-   * @returns {Promise<void>}
-   */
   async cancelScheduledClose() {
     await knex('threads')
       .where('id', this.id)
@@ -365,9 +289,6 @@ class Thread {
       });
   }
 
-  /**
-   * @returns {Promise<void>}
-   */
   async suspend() {
     await knex('threads')
       .where('id', this.id)
@@ -376,9 +297,6 @@ class Thread {
       });
   }
 
-  /**
-   * @returns {Promise<void>}
-   */
   async unsuspend() {
     await knex('threads')
       .where('id', this.id)
@@ -387,10 +305,6 @@ class Thread {
       });
   }
 
-  /**
-   * @param {String} userId
-   * @returns {Promise<void>}
-   */
   async setAlert(userId) {
     await knex('threads')
       .where('id', this.id)
@@ -399,9 +313,6 @@ class Thread {
       });
   }
 
-  /**
-   * @returns {Promise<String>}
-   */
   getLogUrl() {
     return utils.getSelfUrl(`logs/${this.id}`);
   }

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const promisify = require('util').promisify;
 const moment = require('moment');
-const Eris = require('eris');
+const Discord = require('discord.js');
 
 const knex = require('../knex');
 const config = require('../config');
@@ -68,7 +68,8 @@ async function shouldMigrate() {
 }
 
 async function migrateOpenThreads() {
-  const bot = new Eris.Client(config.token);
+  const bot = new Discord.Client();
+  await bot.login(config.token);
 
   const toReturn = new Promise(resolve => {
     bot.on('ready', async () => {
@@ -81,7 +82,7 @@ async function migrateOpenThreads() {
 
         if (existingOpenThread) return;
 
-        const oldChannel = bot.getChannel(oldThread.channelId);
+        const oldChannel = bot.channels.get(oldThread.channelId);
         if (! oldChannel) return;
 
         const threadMessages = await oldChannel.getMessages(1000);
@@ -113,13 +114,11 @@ async function migrateOpenThreads() {
 
       resolve(Promise.all(promises));
     });
-
-    bot.connect();
   });
 
   await toReturn;
 
-  bot.disconnect();
+  bot.destroy();
 }
 
 async function migrateLogs() {

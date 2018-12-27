@@ -12,6 +12,7 @@ module.exports = {
   "typingProxyReverse": process.env.TYPING_PROXY_REVERSE === 'true',
   "useNicknames": process.env.USE_NICKNAMES === 'true',
   "allowMove": process.env.ALLOW_MOVE === 'true',
+  "syncPerms": process.env.SYNC_PERMS === 'true',
   "mentionUserInThreadHeader": process.env.HEADER_MENTION === 'true',
   "newThreadCategoryId": process.env.CATEGORY_ID,
   // "dbConnection": process.env.DB,
@@ -22,7 +23,7 @@ module.exports = {
     useNullAsDefault: true,
     searchPath: ["knex", "mailbot"]
   },
-  
+
   "accountAgeDeniedMessage": "Ваш аккаунт был создан недавно, для защиты от спама вы пока не можете отправлять сообщения.",
   "status": "ЛС сервера",
   "responseMessage": "Спасибо за обращение! Администрация скоро ответит.",

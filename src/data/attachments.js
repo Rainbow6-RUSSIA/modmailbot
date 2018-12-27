@@ -1,4 +1,3 @@
-const Eris = require('eris');
 const fs = require('fs');
 const https = require('https');
 const config = require('../config');
@@ -13,21 +12,10 @@ const attachmentDir = config.attachmentDir || `${__dirname}/../../attachments`;
 
 const attachmentSavePromises = {};
 
-/**
- * Returns the filesystem path for the given attachment id
- * @param {String} attachmentId
- * @returns {String}
- */
 function getPath(attachmentId) {
   return `${attachmentDir}/${attachmentId}`;
 }
 
-/**
- * Attempts to download and save the given attachement
- * @param {Object} attachment
- * @param {Number=0} tries
- * @returns {Promise}
- */
 async function saveAttachment(attachment) {
   if (attachmentSavePromises[attachment.id]) {
     return attachmentSavePromises[attachment.id];
@@ -76,22 +64,11 @@ function saveAttachmentInner(attachment, tries = 0) {
   });
 }
 
-/**
- * Attempts to download and save all attachments in the given message
- * @param {Eris.Message} msg
- * @returns {Promise}
- */
 function saveAttachmentsInMessage(msg) {
   if (! msg.attachments || msg.attachments.length === 0) return Promise.resolve();
   return Promise.all(msg.attachments.map(saveAttachment));
 }
 
-/**
- * Returns the self-hosted URL to the given attachment ID
- * @param {String} attachmentId
- * @param {String=null} desiredName Custom name for the attachment as a hint for the browser
- * @returns {String}
- */
 function getUrl(attachmentId, desiredName = null) {
   if (desiredName == null) desiredName = 'file.bin';
   return getUtils().getSelfUrl(`attachments/${attachmentId}/${desiredName}`);
@@ -100,7 +77,7 @@ function getUrl(attachmentId, desiredName = null) {
 async function attachmentToFile(attachment) {
   await saveAttachment(attachment);
   const data = await readFile(getPath(attachment.id));
-  return {file: data, name: attachment.filename};
+  return {attachment: data, name: attachment.filename};
 }
 
 module.exports = {

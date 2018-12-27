@@ -1,4 +1,3 @@
-const Eris = require('eris');
 const bot = require('./bot');
 const moment = require('moment');
 const publicIp = require('public-ip');
@@ -13,21 +12,16 @@ let inboxGuild = null;
 let mainGuilds = [];
 let logChannel = null;
 
-/**
- * @returns {Eris~Guild}
- */
 function getInboxGuild() {
-  if (! inboxGuild) inboxGuild = bot.guilds.find(g => g.id === config.mailGuildId);
+  if (! inboxGuild) inboxGuild = bot.guilds.get(config.mailGuildId);
   if (! inboxGuild) throw new BotError('The bot is not on the modmail (inbox) server!');
   return inboxGuild;
 }
+module.exports.getInboxGuild = getInboxGuild;
 
-/**
- * @returns {Eris~Guild[]}
- */
 function getMainGuilds() {
   if (mainGuilds.length === 0) {
-    mainGuilds = bot.guilds.filter(g => config.mainGuildId.includes(g.id));
+    mainGuilds = bot.guilds.filter(g => config.mainGuildId.includes(g.id)).array();
   }
 
   if (mainGuilds.length !== config.mainGuildId.length) {
@@ -40,11 +34,8 @@ function getMainGuilds() {
 
   return mainGuilds;
 }
+module.exports.getMainGuilds = getMainGuilds;
 
-/**
- * Returns the designated log channel, or the default channel if none is set
- * @returns {Eris~TextChannel}
- */
 function getLogChannel() {
   const inboxGuild = getInboxGuild();
 
@@ -61,67 +52,50 @@ function getLogChannel() {
   return logChannel;
 }
 
-function postLog(...args) {
-  getLogChannel().createMessage(...args);
+module.exports.getLogChannel = getLogChannel;
+
+module.exports.postLog = (...args) => {
+  if (! args[0]) return;
+  getLogChannel().send(...args);
 }
 
-function postError(str) {
-  getLogChannel().createMessage({
-    content: `${getInboxMention()}**Ошибка:** ${str.trim()}`,
-    disableEveryone: false
+module.exports.postError = (str) => {
+  getLogChannel().send(`${getInboxMention()}**Ошибка:** ${str.trim()}`, {
+    disableEveryone: true,
   });
 }
 
-/**
- * Returns whether the given member has permission to use modmail commands
- * @param member
- * @returns {boolean}
- */
-function isStaff(member) {
+module.exports.isStaff = (member) => {
   if (config.inboxServerPermission.length === 0) return true;
 
   return config.inboxServerPermission.some(perm => {
     if (isSnowflake(perm)) {
       // If perm is a snowflake, check it against the member's user id and roles
       if (member.id === perm) return true;
-      if (member.roles.includes(perm)) return true;
+      if (member.roles.keyArray().includes(perm)) return true;
     } else {
       // Otherwise assume perm is the name of a permission
-      return member.permission.has(perm);
+      return member.hasPermission(perm);
     }
 
     return false;
   });
 }
 
-/**
- * Returns whether the given message is on the inbox server
- * @param msg
- * @returns {boolean}
- */
-function messageIsOnInboxServer(msg) {
+module.exports.messageIsOnInboxServer = (msg) => {
   if (! msg.channel.guild) return false;
   if (msg.channel.guild.id !== getInboxGuild().id) return false;
   return true;
 }
 
-/**
- * Returns whether the given message is on the main server
- * @param msg
- * @returns {boolean}
- */
-function messageIsOnMainServer(msg) {
+module.exports.messageIsOnMainServer = (msg) => {
   if (! msg.channel.guild) return false;
 
   return getMainGuilds()
     .some(g => msg.channel.guild.id === g.id);
 }
 
-/**
- * @param attachment
- * @returns {Promise<string>}
- */
-async function formatAttachment(attachment) {
+module.exports.formatAttachment = async (attachment) => {
   let filesize = attachment.size || 0;
   filesize /= 1024;
 
@@ -129,12 +103,7 @@ async function formatAttachment(attachment) {
   return `**Приложение:** ${attachment.filename} (${filesize.toFixed(1)}KB)\n${attachmentUrl}`;
 }
 
-/**
- * Returns the user ID of the user mentioned in str, if any
- * @param {String} str
- * @returns {String|null}
- */
-function getUserMention(str) {
+module.exports.getUserMention = (str) => {
   str = str.trim();
 
   if (str.match(/^[0-9]+$/)) {
@@ -148,29 +117,15 @@ function getUserMention(str) {
   return null;
 }
 
-/**
- * Returns the current timestamp in an easily readable form
- * @returns {String}
- */
-function getTimestamp(...momentArgs) {
+module.exports.getTimestamp = (...momentArgs) => {
   return moment.utc(...momentArgs).format('HH:mm');
 }
 
-/**
- * Disables link previews in the given string by wrapping links in < >
- * @param {String} str
- * @returns {String}
- */
-function disableLinkPreviews(str) {
+module.exports.disableLinkPreviews = (str) => {
   return str.replace(/(^|[^<])(https?:\/\/\S+)/ig, '$1<$2>');
 }
 
-/**
- * Returns a URL to the bot's web server
- * @param {String} path
- * @returns {Promise<String>}
- */
-async function getSelfUrl(path = '') {
+module.exports.getSelfUrl = async (path = '') => {
   if (config.url) {
     return `${config.url}/${path}`;
   } else {
@@ -180,24 +135,13 @@ async function getSelfUrl(path = '') {
   }
 }
 
-/**
- * Returns the highest hoisted role of the given member
- * @param {Eris~Member} member
- * @returns {Eris~Role}
- */
-function getMainRole(member) {
-  const roles = member.roles.map(id => member.guild.roles.get(id));
-  roles.sort((a, b) => a.position > b.position ? -1 : 1);
-  return roles.find(r => r.hoist);
+module.exports.getMainRole = (member) => {
+  // const roles = member.roles.map(id => member.guild.roles.get(id));
+  // roles.sort((a, b) => a.position > b.position ? -1 : 1);
+  return member.roles.hoist;
 }
 
-/**
- * Splits array items into chunks of the specified size
- * @param {Array|String} items
- * @param {Number} chunkSize
- * @returns {Array}
- */
-function chunk(items, chunkSize) {
+module.exports.chunk = (items, chunkSize) => {
   const result = [];
 
   for (let i = 0; i < items.length; i += chunkSize) {
@@ -207,24 +151,14 @@ function chunk(items, chunkSize) {
   return result;
 }
 
-/**
- * Trims every line in the string
- * @param {String} str
- * @returns {String}
- */
-function trimAll(str) {
+module.exports.trimAll = (str) => {
   return str
     .split('\n')
     .map(str => str.trim())
     .join('\n');
 }
 
-/**
- * Turns a "delay string" such as "1h30m" to milliseconds
- * @param {String} str
- * @returns {Number}
- */
-function convertDelayStringToMS(str) {
+module.exports.convertDelayStringToMS = (str) => {
   const regex = /^([0-9]+)\s*([dhms])?[a-z]*\s*/;
   let match;
   let ms = 0;
@@ -254,21 +188,18 @@ function getInboxMention() {
   else if (config.mentionRole === 'everyone') return '@everyone ';
   else return `<@&${config.mentionRole}> `;
 }
+module.exports.getInboxMention = getInboxMention;
 
-function postSystemMessageWithFallback(channel, thread, text) {
+module.exports.postSystemMessageWithFallback = (channel, thread, text) => {
   if (thread) {
     thread.postSystemMessage(text);
   } else {
-    channel.createMessage(text);
+    if (! text) return;
+    channel.send(text);
   }
 }
 
-/**
- * A normalized way to set props in data models, fixing some inconsistencies between different DB drivers in knex
- * @param {Object} target
- * @param {Object} props
- */
-function setDataModelProps(target, props) {
+module.exports.setDataModelProps = (target, props) => {
   for (const prop in props) {
     if (! props.hasOwnProperty(prop)) continue;
     // DATETIME fields are always returned as Date objects in MySQL/MariaDB
@@ -290,35 +221,36 @@ const snowflakeRegex = /^[0-9]{17,}$/;
 function isSnowflake(str) {
   return snowflakeRegex.test(str);
 }
+module.exports.isSnowflake = isSnowflake;
 
-module.exports = {
-  BotError,
+// module.exports = {
+//   BotError,
 
-  getInboxGuild,
-  getMainGuilds,
-  getLogChannel,
-  postError,
-  postLog,
+//   getInboxGuild,
+//   getMainGuilds,
+//   getLogChannel,
+//   postError,
+//   postLog,
 
-  isStaff,
-  messageIsOnInboxServer,
-  messageIsOnMainServer,
+//   isStaff,
+//   messageIsOnInboxServer,
+//   messageIsOnMainServer,
 
-  formatAttachment,
+//   formatAttachment,
 
-  getUserMention,
-  getTimestamp,
-  disableLinkPreviews,
-  getSelfUrl,
-  getMainRole,
-  convertDelayStringToMS,
-  getInboxMention,
-  postSystemMessageWithFallback,
+//   getUserMention,
+//   getTimestamp,
+//   disableLinkPreviews,
+//   getSelfUrl,
+//   getMainRole,
+//   convertDelayStringToMS,
+//   getInboxMention,
+//   postSystemMessageWithFallback,
 
-  chunk,
-  trimAll,
+//   chunk,
+//   trimAll,
 
-  setDataModelProps,
+//   setDataModelProps,
 
-  isSnowflake,
-};
+//   isSnowflake,
+// };
