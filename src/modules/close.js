@@ -32,7 +32,7 @@ module.exports = bot => {
       console.error(e);
     }
 
-    setTimeout(scheduledCloseLoop, 2000);
+    setTimeout(scheduledCloseLoop, 5000);
   }
 
   scheduledCloseLoop();
