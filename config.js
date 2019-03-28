@@ -6,7 +6,7 @@ module.exports = {
   "port": process.env.PORT,
   "url": process.env.URL,
 
-  "attachmentStorage": 'local',
+  "attachmentStorage": 'discord',
   "attachmentStorageChannelId": process.env.ATTACHMENT_STORAGE_CHANNEL,
   "relaySmallAttachmentsAsAttachments": process.env.RELAY_ATTACHMENTS_AS_ATTACHMENTS === 'true',
   "requiredAccountAge": parseInt(process.env.REQUIRED_ACCOUNT_AGE),
