@@ -19,6 +19,7 @@ const {THREAD_MESSAGE_TYPE, THREAD_STATUS} = require('./constants');
  * @property {String} scheduled_close_at
  * @property {String} scheduled_close_id
  * @property {String} scheduled_close_name
+ * @property {Number} scheduled_close_silent
  * @property {String} alert_id
  * @property {String} created_at
  */
@@ -32,7 +33,7 @@ class Thread {
    * @param {String} text
    * @param {Eris~MessageFile[]} replyAttachments
    * @param {Boolean} isAnonymous
-   * @returns {Promise<void>}
+   * @returns {Promise<boolean>} Whether we were able to send the reply
    */
   async replyToUser(moderator, text, replyAttachments = [], isAnonymous = false) {
     // Username to reply with
@@ -41,7 +42,7 @@ class Thread {
 
     if (isAnonymous) {
       modUsername = (mainRole ? mainRole.name : 'Администратор');
-      logModUsername = `(${moderator.user.username}) ${mainRole ? mainRole.name : 'Администратор'}`;
+      logModUsername = `(Анонимно) (${moderator.user.username}) ${mainRole ? mainRole.name : 'Администратор'}`;
     } else {
       const name = (config.useNicknames ? moderator.nick || moderator.user.username : moderator.user.username);
       modUsername = (mainRole ? `(${mainRole.name}) ${name}` : name);
@@ -63,10 +64,18 @@ class Thread {
 
     if (replyAttachments.length > 0) {
       for (const attachment of replyAttachments) {
-        files.push(await attachments.attachmentToFile(attachment));
-        const url = await attachments.getUrl(attachment.id, attachment.filename);
+        let savedAttachment;
 
-        logContent += `\n\n**Приложение:** ${url}`;
+        await Promise.all([
+          attachments.attachmentToFile(attachment).then(file => {
+            files.push(file);
+          }),
+          attachments.saveAttachment(attachment).then(result => {
+            savedAttachment = result;
+          })
+        ]);
+
+        logContent += `\n\n**Приложение:** ${savedAttachment.url}`;
       }
     }
 
@@ -75,8 +84,16 @@ class Thread {
     try {
       dmMessage = await this.postToUser(dmContent, files);
     } catch (e) {
+      await this.addThreadMessageToDB({
+        message_type: THREAD_MESSAGE_TYPE.COMMAND,
+        user_id: moderator.id,
+        user_name: logModUsername,
+        body: logContent
+      });
+
       await this.postSystemMessage(`При ответе пользователю возникла ошибка: ${e.message}`);
-      return;
+
+      return false;
     }
 
     // Send the reply to the modmail thread
@@ -96,6 +113,8 @@ class Thread {
       await this.cancelScheduledClose();
       await this.postSystemMessage(`Отмена запланированного закрытия из-за нового сообщения`);
     }
+
+    return true;
   }
 
   /**
@@ -120,10 +139,10 @@ class Thread {
     let attachmentFiles = [];
 
     for (const attachment of msg.attachments) {
-      await attachments.saveAttachment(attachment);
+      const savedAttachment = await attachments.saveAttachment(attachment);
 
       // Forward small attachments (<2MB) as attachments, just link to larger ones
-      const formatted = '\n\n' + await utils.formatAttachment(attachment);
+      const formatted = '\n\n' + await utils.formatAttachment(attachment, savedAttachment.url);
       logContent += formatted; // Logs always contain the link
 
       if (config.relaySmallAttachmentsAsAttachments && attachment.size <= 1024 * 1024 * 2) {
@@ -316,10 +335,15 @@ class Thread {
   /**
    * @returns {Promise<void>}
    */
-  async close(silent = false) {
-    if (! silent) {
+  async close(suppressSystemMessage = false, silent = false) {
+    if (! suppressSystemMessage) {
       console.log(`Closing thread ${this.id}`);
-      await this.postSystemMessage('Закрываю тред...');
+
+      if (silent) {
+        await this.postSystemMessage('Закрываю тред без уведомления...');
+      } else {
+        await this.postSystemMessage('Закрываю тред...');
+      }
     }
 
     // Update DB status
@@ -340,15 +364,17 @@ class Thread {
   /**
    * @param {String} time
    * @param {Eris~User} user
+   * @param {Number} silent
    * @returns {Promise<void>}
    */
-  async scheduleClose(time, user) {
+  async scheduleClose(time, user, silent) {
     await knex('threads')
       .where('id', this.id)
       .update({
         scheduled_close_at: time,
         scheduled_close_id: user.id,
-        scheduled_close_name: user.username
+        scheduled_close_name: user.username,
+        scheduled_close_silent: silent
       });
   }
 
@@ -361,7 +387,8 @@ class Thread {
       .update({
         scheduled_close_at: null,
         scheduled_close_id: null,
-        scheduled_close_name: null
+        scheduled_close_name: null,
+        scheduled_close_silent: null
       });
   }
 
@@ -372,7 +399,10 @@ class Thread {
     await knex('threads')
       .where('id', this.id)
       .update({
-        status: THREAD_STATUS.SUSPENDED
+        status: THREAD_STATUS.SUSPENDED,
+        scheduled_suspend_at: null,
+        scheduled_suspend_id: null,
+        scheduled_suspend_name: null
       });
   }
 
@@ -384,6 +414,34 @@ class Thread {
       .where('id', this.id)
       .update({
         status: THREAD_STATUS.OPEN
+      });
+  }
+
+  /**
+   * @param {String} time
+   * @param {Eris~User} user
+   * @returns {Promise<void>}
+   */
+  async scheduleSuspend(time, user) {
+    await knex('threads')
+      .where('id', this.id)
+      .update({
+        scheduled_suspend_at: time,
+        scheduled_suspend_id: user.id,
+        scheduled_suspend_name: user.username
+      });
+  }
+
+  /**
+   * @returns {Promise<void>}
+   */
+  async cancelScheduledSuspend() {
+    await knex('threads')
+      .where('id', this.id)
+      .update({
+        scheduled_suspend_at: null,
+        scheduled_suspend_id: null,
+        scheduled_suspend_name: null
       });
   }
 

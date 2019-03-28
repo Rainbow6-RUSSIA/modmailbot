@@ -47,8 +47,8 @@ module.exports = bot => {
     const snippet = await snippets.get(trigger);
     if (! snippet) return;
 
-    await thread.replyToUser(msg.member, snippet.body, [], isAnonymous);
-    msg.delete();
+    const replied = await thread.replyToUser(msg.member, snippet.body, [], isAnonymous);
+    if (replied) msg.delete();
   });
 
   // Show or add a snippet
@@ -75,7 +75,7 @@ module.exports = bot => {
       } else {
         // If the snippet doesn't exist and the user isn't trying to create it, inform them how to create it
         utils.postSystemMessageWithFallback(msg.channel, thread, `Шаблон "${trigger}" не существует! Вы можете создать его с помощью \`${config.prefix}snippet ${trigger} text\`.`);
-      }
+       }
     }
   });
 

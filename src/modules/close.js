@@ -1,4 +1,3 @@
-const humanizeDuration = require('humanize-duration');
 const moment = require('moment');
 const Eris = require('eris');
 const config = require('../config');
@@ -8,14 +7,15 @@ const blocked = require('../data/blocked');
 const {messageQueue} = require('../queue');
 
 module.exports = bot => {
-  const humanizeDelay = (delay, opts = {}) => humanizeDuration(delay, Object.assign({conjunction: ' и ', language: 'ru'}, opts));
-
   // Check for threads that are scheduled to be closed and close them
   async function applyScheduledCloses() {
     const threadsToBeClosed = await threads.getThreadsThatShouldBeClosed();
     for (const thread of threadsToBeClosed) {
-      if(config.closeMessage) await thread.postToUser(config.closeMessage).catch(() => {});
-      await thread.close();
+      if (config.closeMessage && ! thread.scheduled_close_silent) {
+        await thread.postToUser(config.closeMessage).catch(() => {});
+      }
+
+      await thread.close(false, thread.scheduled_close_silent);
 
       const logUrl = await thread.getLogUrl();
       utils.postLog(utils.trimAll(`
@@ -41,6 +41,9 @@ module.exports = bot => {
   bot.registerCommand('close', async (msg, args) => {
     let thread, closedBy;
 
+    let hasCloseMessage = !! config.closeMessage;
+    let silentClose = false;
+
     if (msg.channel instanceof Eris.PrivateChannel) {
       // User is closing the thread by themselves (if enabled)
       if (! config.allowUserClose) return;
@@ -65,9 +68,8 @@ module.exports = bot => {
       thread = await threads.findOpenThreadByChannelId(msg.channel.id);
       if (! thread) return;
 
-      // Timed close
       if (args.length) {
-        if (args[0].startsWith('c')) {
+        if (args.includes('cancel') || args.includes('c')) {
           // Cancel timed close
           if (thread.scheduled_close_at) {
             await thread.cancelScheduledClose();
@@ -77,26 +79,43 @@ module.exports = bot => {
           return;
         }
 
-        // Set a timed close
-        const delay = utils.convertDelayStringToMS(args.join(' '));
-        if (delay === 0 || delay === null) {
-          thread.postSystemMessage(`Неккоректный формат задержки. Пример: \`1h30m\``);
-          return;
+        // Silent close (= no close message)
+        if (args.includes('silent') || args.includes('s')) {
+          silentClose = true;
         }
 
-        const closeAt = moment.utc().add(delay, 'ms');
-        await thread.scheduleClose(closeAt.format('YYYY-MM-DD HH:mm:ss'), msg.author);
-        thread.postSystemMessage(`Закрытие треда запланировано через ${humanizeDelay(delay)}. Используйте \`${config.prefix}close cancel\` для отмены.`);
+        // Timed close
+        const delayStringArg = args.find(arg => utils.delayStringRegex.test(arg));
+        if (delayStringArg) {
+          const delay = utils.convertDelayStringToMS(delayStringArg);
+          if (delay === 0 || delay === null) {
+            thread.postSystemMessage(`Неккоректный формат задержки. Пример: \`1h30m\``);
+            return;
+          }
 
-        return;
+          const closeAt = moment.utc().add(delay, 'ms');
+          await thread.scheduleClose(closeAt.format('YYYY-MM-DD HH:mm:ss'), msg.author, silentClose ? 1 : 0);
+
+          let response;
+          if (silentClose) {
+            response = `Закрытие треда без уведомления запланировано через ${utils.humanizeDelay(delay)}. Используйте \`${config.prefix}close cancel\` для отмены.`;
+          } else {
+            response = `Закрытие треда запланировано через ${utils.humanizeDelay(delay)}. Используйте \`${config.prefix}close cancel\` для отмены.`;
+          }
+
+          thread.postSystemMessage(response);
+
+          return;
+        }
       }
 
       // Regular close
-      await thread.close();
+      await thread.close(false, silentClose);
       closedBy = msg.author.username;
     }
 
-    if (config.closeMessage) {
+    // Send close message (unless suppressed with a silent close)
+    if (hasCloseMessage && ! silentClose) {
       await thread.postToUser(config.closeMessage).catch(() => {});
     }
 

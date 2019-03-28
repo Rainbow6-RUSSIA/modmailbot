@@ -54,9 +54,8 @@ bot.on('messageCreate', async msg => {
     // AUTO-REPLY: If config.alwaysReply is enabled, send all chat messages in thread channels as replies
     if (! utils.isStaff(msg.member)) return; // Only staff are allowed to reply
 
-    if (msg.attachments.length) await attachments.saveAttachmentsInMessage(msg);
-    await thread.replyToUser(msg.member, msg.content.trim(), msg.attachments, config.alwaysReplyAnon || false);
-    msg.delete();
+    const replied = await thread.replyToUser(msg.member, msg.content.trim(), msg.attachments, config.alwaysReplyAnon || false);
+    if (replied) msg.delete();
   } else {
     // Otherwise just save the messages as "chat" in the logs
     thread.saveChatMessage(msg);
@@ -178,7 +177,7 @@ bot.on('messageCreate', async msg => {
 
   // Send an auto-response to the mention, if enabled
   if (config.botMentionResponse) {
-    bot.createMessage(msg.channel.id, config.botMentionResponse);
+    bot.createMessage(msg.channel.id, config.botMentionResponse.replace(/{userMention}/g, `<@${msg.author.id}>`));
   }
 });
 
