@@ -1,8 +1,8 @@
 const Eris = require('eris');
 const bot = require('./bot');
 const moment = require('moment');
+const humanizeDuration = require('humanize-duration');
 const publicIp = require('public-ip');
-const attachments = require('./data/attachments');
 const config = require('./config');
 
 class BotError extends Error {}
@@ -78,6 +78,7 @@ function postError(str) {
  * @returns {boolean}
  */
 function isStaff(member) {
+  if (! member) return false;
   if (config.inboxServerPermission.length === 0) return true;
 
   return config.inboxServerPermission.some(perm => {
@@ -121,11 +122,10 @@ function messageIsOnMainServer(msg) {
  * @param attachment
  * @returns {Promise<string>}
  */
-async function formatAttachment(attachment) {
+async function formatAttachment(attachment, attachmentUrl) {
   let filesize = attachment.size || 0;
   filesize /= 1024;
 
-  const attachmentUrl = await attachments.getUrl(attachment.id, attachment.filename);
   return `**Приложение:** ${attachment.filename} (${filesize.toFixed(1)}KB)\n${attachmentUrl}`;
 }
 
@@ -219,19 +219,20 @@ function trimAll(str) {
     .join('\n');
 }
 
+const delayStringRegex = /^([0-9]+)(?:([dhms])[a-z]*)?/i;
+
 /**
  * Turns a "delay string" such as "1h30m" to milliseconds
  * @param {String} str
  * @returns {Number}
  */
 function convertDelayStringToMS(str) {
-  const regex = /^([0-9]+)\s*([dhms])?[a-z]*\s*/;
   let match;
   let ms = 0;
 
   str = str.trim();
 
-  while (str !== '' && (match = str.match(regex)) !== null) {
+  while (str !== '' && (match = str.match(delayStringRegex)) !== null) {
     if (match[2] === 'd') ms += match[1] * 1000 * 60 * 60 * 24;
     else if (match[2] === 'h') ms += match[1] * 1000 * 60 * 60;
     else if (match[2] === 's') ms += match[1] * 1000;
@@ -291,6 +292,8 @@ function isSnowflake(str) {
   return snowflakeRegex.test(str);
 }
 
+const humanizeDelay = (delay, opts = {}) => humanizeDuration(delay, Object.assign({conjunction: ' и '}, opts));
+
 module.exports = {
   BotError,
 
@@ -311,6 +314,7 @@ module.exports = {
   disableLinkPreviews,
   getSelfUrl,
   getMainRole,
+  delayStringRegex,
   convertDelayStringToMS,
   getInboxMention,
   postSystemMessageWithFallback,
@@ -321,4 +325,6 @@ module.exports = {
   setDataModelProps,
 
   isSnowflake,
+
+  humanizeDelay,
 };

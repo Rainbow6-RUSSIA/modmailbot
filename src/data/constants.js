@@ -21,7 +21,7 @@ module.exports = {
     'хорошо',
     'ок',
     'без проблем',
-    
+
     'ok',
     'okay',
     'thanks',

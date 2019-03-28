@@ -163,7 +163,7 @@ async function createNewThreadForUser(user, quiet = false) {
 
   const userLogCount = await getClosedThreadCountByUserId(user.id);
   if (userLogCount > 0) {
-    infoHeader += `\n\n"Этот пользователь имеет **${userLogCount}** обращени${declOfNum(userLogCount, ['е', 'я', 'й'])}. Используйте \`${config.prefix}logs\` чтобы посмотреть их.`;
+    infoHeader += `\n\nЭтот пользователь имеет **${userLogCount}** обращени${declOfNum(userLogCount, ['е', 'я', 'й'])}. Используйте \`${config.prefix}logs\` чтобы посмотреть их.`;
   }
 
   infoHeader += '\n────────────────';
@@ -172,7 +172,7 @@ async function createNewThreadForUser(user, quiet = false) {
 
   // If there were errors sending a response to the user, note that
   if (responseMessageError) {
-    await newThread.postSystemMessage(`*ВАЖНО:** Не удалось отправить автоответ пользователю. Ошибка: \`${responseMessageError.message}\``);
+    await newThread.postSystemMessage(`**ВНИМАНИЕ:** Не удалось отправить автоответ пользователю. Ошибка: \`${responseMessageError.message}\``);
   }
 
   // Return the thread
@@ -277,6 +277,18 @@ async function getThreadsThatShouldBeClosed() {
   return threads.map(thread => new Thread(thread));
 }
 
+async function getThreadsThatShouldBeSuspended() {
+  const now = moment.utc().format('YYYY-MM-DD HH:mm:ss');
+  const threads = await knex('threads')
+    .where('status', THREAD_STATUS.OPEN)
+    .whereNotNull('scheduled_suspend_at')
+    .where('scheduled_suspend_at', '<=', now)
+    .whereNotNull('scheduled_suspend_at')
+    .select();
+
+  return threads.map(thread => new Thread(thread));
+}
+
 module.exports = {
   findById,
   findOpenThreadByUserId,
@@ -287,5 +299,6 @@ module.exports = {
   getClosedThreadsByUserId,
   findOrCreateThreadForUser,
   getThreadsThatShouldBeClosed,
+  getThreadsThatShouldBeSuspended,
   createThreadInDB
 };

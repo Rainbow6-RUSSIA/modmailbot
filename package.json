@@ -1,6 +1,6 @@
 {
   "name": "modmailbot",
-  "version": "2.17.0",
+  "version": "2.19.0",
   "description": "",
   "license": "MIT",
   "main": "src/index.js",
@@ -10,15 +10,16 @@
     "lint": "./node_modules/.bin/eslint ./src"
   },
   "author": "",
-  "dependencies": {    
+  "dependencies": {
     "dotenv": "^6.1.0",
     "eris": "^0.9.0",
     "humanize-duration": "^3.12.1",
     "json5": "^1.0.1",
     "knex": "^0.15.2",
     "mime": "^2.3.1",
-    "moment": "^2.21.0",    
+    "moment": "^2.21.0",
     "pg": "^7.6.1",
+    "tmp": "0.0.33",
     "public-ip": "^2.0.1",
     "transliteration": "^1.6.2",
     "uuid": "^3.1.0"
@@ -28,6 +29,6 @@
   },
   "engines": {
     "node": "10.15.x",
-    "yarn": "1.13.x"
+    "yarn": "1.15.x"
   }
 }

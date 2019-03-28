@@ -6,6 +6,8 @@ module.exports = {
   "port": process.env.PORT,
   "url": process.env.URL,
 
+  "attachmentStorage": 'discord',
+  "attachmentStorageChannelId": process.env.ATTACHMENT_STORAGE_CHANNEL,
   "relaySmallAttachmentsAsAttachments": process.env.RELAY_ATTACHMENTS_AS_ATTACHMENTS === 'true',
   "requiredAccountAge": parseInt(process.env.REQUIRED_ACCOUNT_AGE),
   "typingProxy": process.env.TYPING_PROXY === 'true',
@@ -14,7 +16,7 @@ module.exports = {
   "allowMove": process.env.ALLOW_MOVE === 'true',
   "mentionUserInThreadHeader": process.env.HEADER_MENTION === 'true',
   "newThreadCategoryId": process.env.CATEGORY_ID,
-  // "dbConnection": process.env.DB,
+  "syncPermissionsOnMove": true,
 
   "knex": {
     client: "pg",
@@ -22,7 +24,7 @@ module.exports = {
     useNullAsDefault: true,
     searchPath: ["knex", "mailbot"]
   },
-  
+
   "accountAgeDeniedMessage": "Ваш аккаунт был создан недавно, для защиты от спама вы пока не можете отправлять сообщения.",
   "status": "ЛС сервера",
   "responseMessage": "Спасибо за обращение! Администрация скоро ответит. Во избежание недоразумений сообщения записываются.",
