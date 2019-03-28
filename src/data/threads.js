@@ -122,7 +122,7 @@ async function createNewThreadForUser(user, quiet = false) {
   const infoHeaderItems = [];
 
   // Account age
-  const accountAge = humanizeDuration(Date.now() - user.createdAt, {largest: 2, round: true});
+  const accountAge = humanizeDuration(Date.now() - user.createdAt, {largest: 2, round: true, language: 'ru'});
   infoHeaderItems.push(`ВОЗРАСТ АККАУНТА **${accountAge}**`);
 
   // User id (and mention, if enabled)
