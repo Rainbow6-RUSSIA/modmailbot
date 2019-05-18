@@ -123,7 +123,7 @@ async function createNewThreadForUser(user, quiet = false) {
 
   // Account age
   const accountAge = humanizeDuration(Date.now() - user.createdAt, {largest: 2, round: true, language: 'ru'});
-  infoHeaderItems.push(`ВОЗРАСТ АККАУНТА **${accountAge}**`);
+  infoHeaderItems.push(`ВОЗРАСТ АККАУНТА: **${accountAge}**`);
 
   // User id (and mention, if enabled)
   if (config.mentionUserInThreadHeader) {
@@ -144,9 +144,9 @@ async function createNewThreadForUser(user, quiet = false) {
 
     const {nickname, joinDate} = getHeaderGuildInfo(member);
     guildInfoHeaderItems.set(guild.name, [
-      `НИКНЕЙМ **${nickname}**`,
-      `ПРИСОЕДИНИЛСЯ **${joinDate}** назад`,
-      `РОЛИ **${member.roles.length ? `@${member.roles.map(r => guild.roles.get('r').name).join(', @')}` : 'нет'}**`
+      `НИКНЕЙМ: **${nickname}**`,
+      `ПРИСОЕДИНИЛСЯ: **${joinDate}** назад`,
+      `\nРОЛИ: **${member.roles.length ? `@${member.roles.map(r => guild.roles.get(r)).sort((a, b) => b.position - a.position).map(r => r.name).join(', @')}` : 'нет'}**`
     ]);
   });
 
