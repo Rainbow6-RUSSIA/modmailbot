@@ -292,7 +292,7 @@ function isSnowflake(str) {
   return snowflakeRegex.test(str);
 }
 
-const humanizeDelay = (delay, opts = {}) => humanizeDuration(delay, Object.assign({conjunction: ' и '}, opts));
+const humanizeDelay = (delay, opts = {}) => humanizeDuration(delay, Object.assign({conjunction: ' и ', language: 'ru'}, opts));
 
 module.exports = {
   BotError,

@@ -145,7 +145,8 @@ async function createNewThreadForUser(user, quiet = false) {
     const {nickname, joinDate} = getHeaderGuildInfo(member);
     guildInfoHeaderItems.set(guild.name, [
       `НИКНЕЙМ **${nickname}**`,
-      `ПРИСОЕДИНИЛСЯ **${joinDate}** назад`
+      `ПРИСОЕДИНИЛСЯ **${joinDate}** назад`,
+      `РОЛИ **${member.roles.length ? `@${member.roles.map(r => guild.roles.get('r').name).join(', @')}` : 'нет'}**`
     ]);
   });
 
