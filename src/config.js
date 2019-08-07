@@ -70,18 +70,31 @@ const defaultConfig = {
   "typingProxy": false,
   "typingProxyReverse": false,
   "mentionUserInThreadHeader": false,
+  "rolesInThreadHeader": false,
 
   "enableGreeting": false,
   "greetingMessage": null,
   "greetingAttachment": null,
 
+  "guildGreetings": {},
+
   "requiredAccountAge": null, // In hours
   "accountAgeDeniedMessage": "Your Discord account is not old enough to contact modmail.",
+
+  "requiredTimeOnServer": null, // In minutes
+  "timeOnServerDeniedMessage": "You haven't been a member of the server for long enough to contact modmail.",
 
   "relaySmallAttachmentsAsAttachments": false,
   "smallAttachmentLimit": 1024 * 1024 * 2,
   "attachmentStorage": "local",
   "attachmentStorageChannelId": null,
+
+  "categoryAutomation": {},
+
+  "updateNotifications": true,
+  "plugins": [],
+
+  "commandAliases": {},
 
   "port": 8890,
   "url": null,
@@ -154,6 +167,26 @@ if (! Array.isArray(finalConfig['inboxServerPermission'])) {
   } else {
     finalConfig['inboxServerPermission'] = [finalConfig['inboxServerPermission']];
   }
+}
+
+// Move greetingMessage/greetingAttachment to the guildGreetings object internally
+// Or, in other words, if greetingMessage and/or greetingAttachment is set, it is applied for all servers that don't
+// already have something set up in guildGreetings. This retains backwards compatibility while allowing you to override
+// greetings for specific servers in guildGreetings.
+if (finalConfig.greetingMessage || finalConfig.greetingAttachment) {
+  for (const guildId of finalConfig.mainGuildId) {
+    if (finalConfig.guildGreetings[guildId]) continue;
+    finalConfig.guildGreetings[guildId] = {
+      message: finalConfig.greetingMessage,
+      message: finalConfig.greetingMessage
+    };
+  }
+}
+
+// newThreadCategoryId is syntactic sugar for categoryAutomation.newThread
+if (finalConfig.newThreadCategoryId) {
+  finalConfig.categoryAutomation.newThread = finalConfig.newThreadCategoryId;
+  delete finalConfig.newThreadCategoryId;
 }
 
 module.exports = finalConfig;

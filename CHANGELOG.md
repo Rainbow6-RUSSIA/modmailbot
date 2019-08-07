@@ -1,5 +1,56 @@
 # Changelog
 
+## v2.25.0
+* Fix regression introduced in v2.24.0 where line breaks would get turned to spaces in replies and snippets ([#304](https://github.com/Dragory/modmailbot/issues/304))
+* Replace the internal command handler with a new one. This should be fairly thoroughly tested, but please report any issues you encounter!
+* Plugins are now called with a fourth parameter that allows you to easily add specific types of commands
+  * Due to the command handler change, any calls to `bot.registerCommand` should be replaced with the new system
+
+## v2.24.0
+* Switch to the new stable version of Eris (0.10.0) instead of the dev version
+
+## v2.23.2
+* Update Node.js version check at startup to require Node.js 10
+
+## v2.23.1
+* Updated required Node.js version in .nvmrc and README (v10 is now the minimum)
+
+## v2.23.0
+* Add update notifications. The bot will check for new versions every 12 hours and notify moderators at the top of new
+modmail threads when there are new versions available. Can be disabled by setting the `updateNotifications` option to `false`.
+New available versions are also shown in `!version`.
+  * If you have forked the repository and want to check for updates in your own repository instead,
+  change the `repository` value in `package.json`
+* Add basic support for plugins. See the **Plugins** section in README for more information.
+* Add support for snippet arguments. To use these, put {1}, {2}, etc. in the snippet text and they will be replaced by the given arguments when using the snippet.
+* Add support for multiple `mentionRole` config option values in an array
+* Add `commandAliases` config option to set custom command aliases
+* Add support for timed blocks. Simply specify the duration as the last argument in `!block` or `!unblock`.
+* Add pagination to `!logs`
+
+## v2.22.0
+* Add `guildGreetings` option to allow configuring greeting messages on a per-server basis
+* Add `rolesInThreadHeader` option to show the user's roles in the modmail thread's header
+
+## v2.21.3
+* Fix crash caused by Nitro Boosting notifications
+
+## v2.21.2
+* Update Eris to fix crashes with news channels and nitro boosting
+
+## v2.21.1
+* "Account age" and "time on server" requirements are now ignored when using `!newthread`
+
+## v2.21.0
+* Add `requiredTimeOnServer` and `timeOnServerDeniedMessage` config options to restrict modmail from users who have just joined the server. Thanks [@reboxer](https://github.com/reboxer) ([#270](https://github.com/Dragory/modmailbot/pull/270))!
+
+## v2.20.0
+* Add `categoryAutomation` option to automate thread categories. Currently supported sub-options:
+  * `newThread` - same as `newThreadCategoryId`, the default category for new threads
+  * `newThreadFromGuild` - default category on a per-guild basis, value is an object with guild IDs as keys and category IDs as values 
+* Threads should now include member information (nickname, joined at, etc.) more reliably
+* Thread header now also includes the member's current voice channel, if any
+
 ## v2.19.0
 * Add `attachmentStorage` option to control where attachments are saved. Currently supported:
   * `"local"` (default) - Same as before: attachments are saved locally on the machine running the bot and served through the bot's web server

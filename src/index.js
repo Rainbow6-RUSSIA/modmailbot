@@ -2,8 +2,8 @@ require('dotenv').config();
 
 // Verify NodeJS version
 const nodeMajorVersion = parseInt(process.versions.node.split('.')[0], 10);
-if (nodeMajorVersion < 8) {
-  console.error('Unsupported NodeJS version! Please install NodeJS 8 or newer.');
+if (nodeMajorVersion < 10) {
+  console.error('Unsupported NodeJS version! Please install NodeJS 10 or newer.');
   process.exit(1);
 }
 
@@ -17,6 +17,18 @@ try {
   console.error('Please run "npm install" before starting the bot');
   process.exit(1);
 }
+
+// Error handling
+process.on('uncaughtException', err => {
+  // Unknown message types (nitro boosting messages at the time) should be safe to ignore
+  if (err && err.message && err.message.startsWith('Unhandled MESSAGE_CREATE type')) {
+    return;
+  }
+
+  // For everything else, crash with the error
+  console.error(err);
+  process.exit(1);
+});
 
 let testedPackage = '';
 try {

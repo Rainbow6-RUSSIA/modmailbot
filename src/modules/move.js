@@ -1,20 +1,13 @@
 const config = require('../config');
 const Eris = require('eris');
-const threadUtils = require('../threadUtils');
 const transliterate = require("transliteration");
 const erisEndpoints = require('eris/lib/rest/Endpoints');
 
-module.exports = bot => {
-  const addInboxServerCommand = (...args) => threadUtils.addInboxServerCommand(bot, ...args);
+module.exports = (bot, knex, config, commands) => {
+  if (! config.allowMove) return;
 
-  addInboxServerCommand('move', async (msg, args, thread) => {
-    if (! config.allowMove) return;
-
-    if (! thread) return;
-
-    const searchStr = args[0];
-    if (! searchStr || searchStr.trim() === '') return;
-
+  commands.addInboxThreadCommand('move', '<category:string$>', async (msg, args, thread) => {
+    const searchStr = args.category;
     const normalizedSearchStr = transliterate.slugify(searchStr);
 
     const categories = msg.channel.guild.channels.filter(c => {
