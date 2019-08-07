@@ -357,7 +357,7 @@ class Thread {
     const channel = bot.getChannel(this.channel_id);
     if (channel) {
       console.log(`Deleting channel ${this.channel_id}`);
-      await channel.delete('Тред закрыт');
+      await channel.delete('Thread closed');
     }
   }
 
