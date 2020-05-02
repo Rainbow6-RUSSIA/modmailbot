@@ -15,6 +15,7 @@
     "url": "https://github.com/Dragory/modmailbot"
   },
   "dependencies": {
+    "dotenv": "^8.2.0",
     "eris": "^0.11.1",
     "humanize-duration": "^3.12.1",
     "ini": "^1.3.5",
@@ -24,6 +25,7 @@
     "mime": "^2.4.4",
     "moment": "^2.24.0",
     "mv": "^2.1.1",
+    "pg": "^8.0.3",
     "public-ip": "^4.0.0",
     "sqlite3": "^4.1.0",
     "tmp": "^0.1.0",
@@ -33,5 +35,8 @@
   "devDependencies": {
     "eslint": "^6.7.2",
     "nodemon": "^2.0.1"
+  },
+  "engines": {
+    "node": "12.x.x"
   }
 }
