@@ -33,7 +33,7 @@
     "eslint": "^5.16.0"
   },
   "engines": {
-    "node": "10.15.x",
-    "yarn": "1.16.x"
+    "node": "12.x.x",
+    "yarn": "1.x.x"
   }
 }
