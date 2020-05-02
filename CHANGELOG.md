@@ -1,5 +1,57 @@
 # Changelog
 
+## v2.30.1
+* Fix crash with `responseMessage` and `closeMessage` introduced in v2.30.0
+  ([#369](https://github.com/Dragory/modmailbot/pull/369))
+
+## v2.30.0
+* The following config options now also support multi-line values:
+  * `responseMessage`
+  * `closeMessage`
+  * `botMentionResponse`
+  * `greetingMessage`
+  * `accountAgeDeniedMessage`
+  * `timeOnServerDeniedMessage`
+* When the bot is mentioned on the main server, the log message about this now
+  also includes a link to the message ([#319](https://github.com/Dragory/modmailbot/pull/319))
+* Fix error when supplying all config values from env variables without a config file
+* Fix crash in update checker if the repository value in package.json is set to
+  a GitHub repository without releases (this only applies to forks)
+
+## v2.29.1
+* Fix boolean values in `config.ini` not being handled properly
+
+## v2.29.0
+* **Default configuration format is now .ini**
+  * Existing `config.json` files will continue to work and will not be deprecated
+  * This makes the default configuration format for the bot much more approachable than JSON
+* Config values can now also be loaded from environment variables
+  (see [Configuration](docs/configuration.md#environment-variables) for more details)
+* New rewritten instructions for setting up and using the bot
+* New easy-to-use `start.bat` file for Windows
+* Update several package dependencies
+* Fixed incompatibility with Node.js 10 versions prior to 10.9.0
+
+## v2.28.0
+* Fix error when saving attachments locally with `attachmentStorage` set to `"local"` (default) when the bot's folder is
+  on a different storage device than the system's temp folder
+* Add `attachments` object to the plugin API
+  * This allows plugins to add new storage types via `attachments.addStorageType()`
+  * See the [Plugins section in the README](README.md#plugins) for more details
+
+## v2.27.0
+* The `syncPermissionsOnMove` option now defaults to `true`, which should be more intuitive
+* **Plugins:** Plugin functions are no longer called with 4 arguments. Instead, the function is called with 1 argument,
+which is an object that contains the previous 4 values as properties: `bot`, `knex`, `config`, `commands`.
+This will make it easier to scale the plugin system in the future with new features.
+You can see an [updated example in the README](https://github.com/Dragory/modmailbot/blob/master/README.md#example-plugin-file).
+
+## v2.26.0
+* The bot now waits for the main server(s) and inbox server to become available before initializing.
+This is a potential fix to [#335](https://github.com/Dragory/modmailbot/issues/335).
+This should have little to no effect on smaller servers.
+* The bot status ("Playing") is now reapplied hourly since the status can sometimes disappear
+
 ## v2.25.0
 * Fix regression introduced in v2.24.0 where line breaks would get turned to spaces in replies and snippets ([#304](https://github.com/Dragory/modmailbot/issues/304))
 * Replace the internal command handler with a new one. This should be fairly thoroughly tested, but please report any issues you encounter!

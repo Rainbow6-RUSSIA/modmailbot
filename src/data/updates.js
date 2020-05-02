@@ -39,12 +39,12 @@ async function refreshVersions() {
   const [, owner, repo] = parsedUrl.pathname.split('/');
   if (! owner || ! repo) return;
 
-  const apiUrl = `https://api.github.com/repos/${owner}/${repo}/tags`;
   https.get(
-    apiUrl,
     {
+      hostname: 'api.github.com',
+      path: `/repos/${owner}/${repo}/tags`,
       headers: {
-        'User-Agent': `Modmailbot (https://github.com/${owner}/${repo}) (${packageJson.version})`
+        'User-Agent': `Modmail Bot (https://github.com/${owner}/${repo}) (${packageJson.version})`
       }
     },
     async res => {
@@ -60,7 +60,9 @@ async function refreshVersions() {
       res.on('data', chunk => data += chunk);
       res.on('end', async () => {
         const parsed = JSON.parse(data);
-        let latestVersion = parsed[0].name;
+        if (! Array.isArray(parsed) || parsed.length === 0) return;
+
+        const latestVersion = parsed[0].name;
         await knex('updates').update({
           available_version: latestVersion,
           last_checked: moment.utc().format('YYYY-MM-DD HH:mm:ss')

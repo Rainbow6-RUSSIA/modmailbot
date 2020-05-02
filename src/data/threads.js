@@ -68,8 +68,9 @@ async function createNewThreadForUser(user, quiet = false, ignoreRequirements = 
   if (config.requiredAccountAge && ! ignoreRequirements) {
     if (user.createdAt > moment() - config.requiredAccountAge * HOURS){
       if (config.accountAgeDeniedMessage) {
+        const accountAgeDeniedMessage = utils.readMultilineConfigValue(config.accountAgeDeniedMessage);
         const privateChannel = await user.getDMChannel();
-        await privateChannel.createMessage(config.accountAgeDeniedMessage);
+        await privateChannel.createMessage(accountAgeDeniedMessage);
       }
       return;
     }
@@ -106,8 +107,9 @@ async function createNewThreadForUser(user, quiet = false, ignoreRequirements = 
 
     if (! isAllowed) {
       if (config.timeOnServerDeniedMessage) {
+        const timeOnServerDeniedMessage = utils.readMultilineConfigValue(config.timeOnServerDeniedMessage);
         const privateChannel = await user.getDMChannel();
-        await privateChannel.createMessage(config.timeOnServerDeniedMessage);
+        await privateChannel.createMessage(timeOnServerDeniedMessage);
       }
       return;
     }
@@ -144,7 +146,7 @@ async function createNewThreadForUser(user, quiet = false, ignoreRequirements = 
   // Attempt to create the inbox channel for this thread
   let createdChannel;
   try {
-    createdChannel = await utils.getInboxGuild().createChannel(channelName, null, 'New thread', newThreadCategoryId);
+    createdChannel = await utils.getInboxGuild().createChannel(channelName, null, 'New Modmail thread', newThreadCategoryId);
   } catch (err) {
     console.error(`Error creating modmail channel for ${user.username}#${user.discriminator}!`);
     throw err;
@@ -173,8 +175,10 @@ async function createNewThreadForUser(user, quiet = false, ignoreRequirements = 
 
     // Send auto-reply to the user
     if (config.responseMessage) {
+      const responseMessage = utils.readMultilineConfigValue(config.responseMessage);
+
       try {
-        await newThread.postToUser(config.responseMessage);
+        await newThread.postToUser(responseMessage);
       } catch (err) {
         responseMessageError = err;
       }

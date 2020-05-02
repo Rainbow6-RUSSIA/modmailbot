@@ -47,15 +47,14 @@ function getMainGuilds() {
  */
 function getLogChannel() {
   const inboxGuild = getInboxGuild();
-
-  if (! config.logChannelId) {
-    logChannel = inboxGuild.channels.get(inboxGuild.id);
-  } else if (! logChannel) {
-    logChannel = inboxGuild.channels.get(config.logChannelId);
-  }
+  const logChannel = inboxGuild.channels.get(config.logChannelId);
 
   if (! logChannel) {
-    throw new BotError('Log channel not found!');
+    throw new BotError('Log channel (logChannelId) not found!');
+  }
+
+  if (! (logChannel instanceof Eris.TextChannel)) {
+    throw new BotError('Make sure the logChannelId option is set to a text channel!');
   }
 
   return logChannel;
@@ -310,6 +309,13 @@ function disableCodeBlocks(str) {
   return str.replace(/`/g, "`\u200b");
 }
 
+/**
+ *
+ */
+function readMultilineConfigValue(str) {
+  return Array.isArray(str) ? str.join('\n') : str;
+}
+
 module.exports = {
   BotError,
 
@@ -346,4 +352,6 @@ module.exports = {
 
   escapeMarkdown,
   disableCodeBlocks,
+
+  readMultilineConfigValue,
 };
