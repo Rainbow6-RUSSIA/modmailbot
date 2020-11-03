@@ -228,25 +228,25 @@ const defaultFormatters = {
         return message.body;
       }
 
-      let line = `[${moment.utc(message.created_at).format("YYYY-MM-DD HH:mm:ss")}]`;
+      let line = `[${moment.utc(message.created_at).format("DD-MM-YYYY HH:mm:ss")} UTC] `;
 
       if (opts.verbose) {
         if (message.dm_channel_id) {
-          line += ` [DM CHA ${message.dm_channel_id}]`;
+          line += ` [ЛС КАНАЛ ${message.dm_channel_id}]`;
         }
 
         if (message.dm_message_id) {
-          line += ` [DM MSG ${message.dm_message_id}]`;
+          line += ` [ЛС СООБЩ. ${message.dm_message_id}]`;
         }
       }
 
       if (message.message_type === THREAD_MESSAGE_TYPE.FROM_USER) {
-        line += ` [FROM USER] [${message.user_name}] ${message.body}`;
+        line += ` [ОТ ПОЛЬЗОВАТЕЛЯ] [${message.user_name}] ${message.body}`;
       } else if (message.message_type === THREAD_MESSAGE_TYPE.TO_USER) {
         if (opts.verbose) {
-          line += ` [TO USER] [${message.message_number || "0"}] [${message.user_name}]`;
+          line += ` [К ПОЛЬЗОВАТЕЛЮ] [${message.message_number || "0"}] [${message.user_name}]`;
         } else {
-          line += ` [TO USER] [${message.user_name}]`;
+          line += ` [К ПОЛЬЗОВАТЕЛЮ] [${message.user_name}]`;
         }
 
         if (message.use_legacy_format) {
@@ -254,9 +254,9 @@ const defaultFormatters = {
           line += ` ${message.body}`;
         } else if (message.is_anonymous) {
           if (message.role_name) {
-            line += ` (Anonymous) ${message.role_name}: ${message.body}`;
+            line += ` (Анонимно) ${message.role_name}: ${message.body}`;
           } else {
-            line += ` (Anonymous) Moderator: ${message.body}`;
+            line += ` (Анонимно) Модератор: ${message.body}`;
           }
         } else {
           if (message.role_name) {
@@ -268,19 +268,19 @@ const defaultFormatters = {
       } else if (message.message_type === THREAD_MESSAGE_TYPE.SYSTEM) {
         line += ` [BOT] ${message.body}`;
       } else if (message.message_type === THREAD_MESSAGE_TYPE.SYSTEM_TO_USER) {
-        line += ` [BOT TO USER] ${message.body}`;
+        line += ` [BOT ПОЛЬЗОВАТЕЛЮ] ${message.body}`;
       } else if (message.message_type === THREAD_MESSAGE_TYPE.CHAT) {
-        line += ` [CHAT] [${message.user_name}] ${message.body}`;
+        line += ` [ЧАТ] [${message.user_name}] ${message.body}`;
       } else if (message.message_type === THREAD_MESSAGE_TYPE.COMMAND) {
-        line += ` [COMMAND] [${message.user_name}] ${message.body}`;
+        line += ` [КОМАНДА] [${message.user_name}] ${message.body}`;
       } else if (message.message_type === THREAD_MESSAGE_TYPE.REPLY_EDITED) {
         const originalThreadMessage = message.getMetadataValue("originalThreadMessage");
-        line += ` [REPLY EDITED] ${originalThreadMessage.user_name} edited reply ${originalThreadMessage.message_number}:`;
-        line += `\n\nBefore:\n${originalThreadMessage.body}`;
-        line += `\n\nAfter:\n${message.getMetadataValue("newBody")}`;
+        line += ` [СООБЩЕНИЕ ОТРЕДАКТИРОВАНО] ${originalThreadMessage.user_name} отредактировал сообщение ${originalThreadMessage.message_number}:`;
+        line += `\n\nДо:\n${originalThreadMessage.body}`;
+        line += `\n\nПосле:\n${message.getMetadataValue("newBody")}`;
       } else if (message.message_type === THREAD_MESSAGE_TYPE.REPLY_DELETED) {
         const originalThreadMessage = message.getMetadataValue("originalThreadMessage");
-        line += ` [REPLY DELETED] ${originalThreadMessage.user_name} deleted reply ${originalThreadMessage.message_number}:`;
+        line += ` [СООБЩЕНИЕ УДАЛЕНО] ${originalThreadMessage.user_name} удалил сообщение ${originalThreadMessage.message_number}:`;
         line += `\n\n${originalThreadMessage.body}`;
       } else {
         line += ` [${message.user_name}] ${message.body}`;
@@ -295,7 +295,7 @@ const defaultFormatters = {
     });
 
     const openedAt = moment(thread.created_at).format("YYYY-MM-DD HH:mm:ss");
-    const header = `# Modmail thread #${thread.thread_number} with ${thread.user_name} (${thread.user_id}) started at ${openedAt}. All times are in UTC+0.`;
+    const header = `# Тред #${thread.thread_number} с ${thread.user_name} (${thread.user_id}) открыт ${openedAt}. Все временные отметки по UTC+0.`;
 
     const fullResult = header + "\n\n" + lines.join("\n");
 
