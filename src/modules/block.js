@@ -94,7 +94,7 @@ module.exports = ({ bot, knex, config, commands }) => {
     if (blockStatus.isBlocked) {
       if (blockStatus.expiresAt) {
         msg.channel.createMessage({
-          content: `Пользователь <@!${userIdToCheck}> (\`${userIdToCheck}\`) заблокирован до ${moment.utc(blockStatus.expiresAt).utcOffset(6).format("DD.MM.YYYY HH:mm")}`,
+          content: `Пользователь <@!${userIdToCheck}> (\`${userIdToCheck}\`) заблокирован до ${moment.utc(blockStatus.expiresAt).format("DD.MM.YYYY HH:mm")}`,
           allowedMentions: { users: [userIdToCheck] },
         });
       } else {
