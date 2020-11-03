@@ -196,7 +196,7 @@ async function createNewThreadForUser(user, opts = {}) {
     let createdChannel;
     try {
       createdChannel = await utils.getInboxGuild().createChannel(channelName, DISOCRD_CHANNEL_TYPES.GUILD_TEXT, {
-        reason: "Новый почтовый тред",
+        reason: "New Modmail thread",
         parentID: newThreadCategoryId,
       });
     } catch (err) {
