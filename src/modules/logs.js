@@ -48,7 +48,7 @@ module.exports = ({ bot, knex, config, commands, hooks }) => {
       const formattedLogUrl = logUrl
         ? `<${addOptQueryStringToUrl(logUrl, args)}>`
         : `Посмотреть лог - \`${config.prefix}log ${thread.thread_number}\``
-      const formattedDate = moment.utc(thread.created_at).format("Do MMM [в] HH:mm [UTC]");
+      const formattedDate = moment.utc(thread.created_at).utcOffset(6).format("Do MMM [в] HH:mm [МСК]");
       return `\`#${thread.thread_number}\` \`${formattedDate}\`: ${formattedLogUrl}`;
     }));
 

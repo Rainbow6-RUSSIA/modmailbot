@@ -48,7 +48,7 @@ module.exports = ({ bot, knex, config, commands }) => {
     await blocked.block(userIdToBlock, (user ? `${user.username}#${user.discriminator}` : ""), msg.author.id, expiresAt);
 
     if (expiresAt) {
-      const humanized = humanizeDuration(args.blockTime, { largest: 2, round: true });
+      const humanized = humanizeDuration(args.blockTime, { largest: 2, round: true, language: "ru" });
       msg.channel.createMessage(`Пользователь <@${userIdToBlock}> (\`${userIdToBlock}\`) заблокирован на ${humanized}`);
     } else {
       msg.channel.createMessage(`Пользователь <@${userIdToBlock}> (\`${userIdToBlock}\`) заблокирован навсегда`);
@@ -74,7 +74,7 @@ module.exports = ({ bot, knex, config, commands }) => {
 
     const user = bot.users.get(userIdToUnblock);
     if (unblockAt) {
-      const humanized = humanizeDuration(args.unblockDelay, { largest: 2, round: true });
+      const humanized = humanizeDuration(args.unblockDelay, { largest: 2, round: true, language: "ru" });
       await blocked.updateExpiryTime(userIdToUnblock, unblockAt);
       msg.channel.createMessage(`Пользователь <@${userIdToUnblock}> (\`${userIdToUnblock}\`) будет разблокирован через ${humanized}`);
     } else {
@@ -94,7 +94,7 @@ module.exports = ({ bot, knex, config, commands }) => {
     if (blockStatus.isBlocked) {
       if (blockStatus.expiresAt) {
         msg.channel.createMessage({
-          content: `Пользователь <@!${userIdToCheck}> (\`${userIdToCheck}\`) заблокирован до ${blockStatus.expiresAt} (UTC)`,
+          content: `Пользователь <@!${userIdToCheck}> (\`${userIdToCheck}\`) заблокирован до ${moment.utc(blockStatus.expiresAt).utcOffset(6).format("DD.MM.YYYY HH:mm")}`,
           allowedMentions: { users: [userIdToCheck] },
         });
       } else {

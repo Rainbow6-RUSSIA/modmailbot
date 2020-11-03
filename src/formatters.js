@@ -228,7 +228,7 @@ const defaultFormatters = {
         return message.body;
       }
 
-      let line = `[${moment.utc(message.created_at).format("DD-MM-YYYY HH:mm:ss")} UTC] `;
+      let line = `[${moment.utc(message.created_at).utcOffset(6).format("DD.MM.YYYY HH:mm:ss")} МСК] `;
 
       if (opts.verbose) {
         if (message.dm_channel_id) {
@@ -294,8 +294,8 @@ const defaultFormatters = {
       return line;
     });
 
-    const openedAt = moment(thread.created_at).format("YYYY-MM-DD HH:mm:ss");
-    const header = `# Тред #${thread.thread_number} с ${thread.user_name} (${thread.user_id}) открыт ${openedAt}. Все временные отметки по UTC+0.`;
+    const openedAt = moment.utc(thread.created_at).utcOffset(6).format("DD.MM.YYYY HH:mm:ss");
+    const header = `# Тред #${thread.thread_number} с ${thread.user_name} (${thread.user_id}) открыт ${openedAt}. Все временные отметки по МСК.`;
 
     const fullResult = header + "\n\n" + lines.join("\n");
 

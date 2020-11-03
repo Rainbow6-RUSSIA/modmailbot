@@ -1,4 +1,5 @@
-require('dotenv').config();
+require("dotenv").config();
+require("moment").locale("ru")
 
 // Verify NodeJS version
 const nodeMajorVersion = parseInt(process.versions.node.split(".")[0], 10);
