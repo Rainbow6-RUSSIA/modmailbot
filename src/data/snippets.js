@@ -27,7 +27,7 @@ async function addSnippet(trigger, body, createdBy = 0) {
     body,
     created_by: createdBy,
     created_at: moment.utc().format("YYYY-MM-DD HH:mm:ss")
-  });
+  }).returning("*");
 }
 
 /**

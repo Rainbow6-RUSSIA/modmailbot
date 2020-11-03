@@ -136,7 +136,7 @@ class Thread {
       is_anonymous: 0,
       dm_channel_id: dmChannel.id,
       ...data
-    });
+    }).returning("id");
 
     const threadMessage = await knex("thread_messages")
       .where("id", insertedIds[0])
