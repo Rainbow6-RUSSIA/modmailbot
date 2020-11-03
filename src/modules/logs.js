@@ -1,5 +1,5 @@
 const threads = require("../data/threads");
-const moment = require("moment");
+const moment = require("moment-timezone");
 const utils = require("../utils");
 const { getLogUrl, getLogFile, getLogCustomResponse, saveLogToStorage } = require("../data/logs");
 const { THREAD_STATUS } = require("../data/constants");

@@ -1,4 +1,7 @@
-require('dotenv').config();
+require("dotenv").config();
+const moment = require("moment-timezone");
+moment.locale("ru");
+moment.tz.setDefault(process.env.TZ)
 
 // Verify NodeJS version
 const nodeMajorVersion = parseInt(process.versions.node.split(".")[0], 10);

@@ -1,4 +1,4 @@
-const moment = require("moment");
+const moment = require("moment-timezone");
 const knex = require("../knex");
 
 /**
@@ -12,7 +12,7 @@ async function getBlockStatus(userId) {
 
   return {
     isBlocked: !! row,
-    expiresAt: row && row.expires_at
+    expiresAt: row && moment.utc(row.expires_at).format()
   };
 }
 

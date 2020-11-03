@@ -1,5 +1,5 @@
 const humanizeDuration = require("humanize-duration");
-const moment = require("moment");
+const moment = require("moment-timezone");
 const blocked = require("../data/blocked");
 const utils = require("../utils");
 
