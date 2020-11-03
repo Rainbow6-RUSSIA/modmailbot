@@ -1,7 +1,7 @@
 const {User, Member, Message} = require("eris");
 
 const transliterate = require("transliteration");
-const moment = require("moment-timezone");
+const moment = require("moment");
 const uuid = require("uuid");
 const humanizeDuration = require("humanize-duration");
 const crypto = require("crypto");

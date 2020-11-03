@@ -1,6 +1,6 @@
 const Eris = require("eris");
 const bot = require("./bot");
-const moment = require("moment-timezone");
+const moment = require("moment");
 const humanizeDuration = require("humanize-duration");
 const publicIp = require("public-ip");
 const config = require("./cfg");

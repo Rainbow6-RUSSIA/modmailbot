@@ -1,4 +1,4 @@
-const moment = require("moment-timezone");
+const moment = require("moment");
 const threads = require("../data/threads");
 const utils = require("../utils");
 const config = require("../cfg");

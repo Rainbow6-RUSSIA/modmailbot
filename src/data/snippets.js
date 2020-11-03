@@ -1,4 +1,4 @@
-const moment = require("moment-timezone");
+const moment = require("moment");
 const knex = require("../knex");
 const Snippet = require("./Snippet");
 

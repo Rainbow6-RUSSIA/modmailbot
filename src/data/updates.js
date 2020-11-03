@@ -1,6 +1,6 @@
 const url = require("url");
 const https = require("https");
-const moment = require("moment-timezone");
+const moment = require("moment");
 const knex = require("../knex");
 const config = require("../cfg");
 

@@ -1,4 +1,4 @@
-const moment = require("moment-timezone");
+const moment = require("moment");
 const Eris = require("eris");
 
 const bot = require("../bot");
