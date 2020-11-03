@@ -114,7 +114,7 @@ const defaultFormatters = {
   formatStaffReplyThreadMessage(threadMessage) {
     const roleName = threadMessage.role_name || config.fallbackRoleName;
     const modInfo = threadMessage.is_anonymous
-      ? (roleName ? `(Anonymous) (${threadMessage.user_name}) ${roleName}` : `(Anonymous) (${threadMessage.user_name})`)
+      ? (roleName ? `(Анонимно) (${threadMessage.user_name}) ${roleName}` : `(Анонимно) (${threadMessage.user_name})`)
       : (roleName ? `(${roleName}) ${threadMessage.user_name}` : threadMessage.user_name);
 
     let result = modInfo
@@ -266,9 +266,9 @@ const defaultFormatters = {
           }
         }
       } else if (message.message_type === THREAD_MESSAGE_TYPE.SYSTEM) {
-        line += ` [BOT] ${message.body}`;
+        line += ` [БОТ] ${message.body}`;
       } else if (message.message_type === THREAD_MESSAGE_TYPE.SYSTEM_TO_USER) {
-        line += ` [BOT ПОЛЬЗОВАТЕЛЮ] ${message.body}`;
+        line += ` [БОТ ПОЛЬЗОВАТЕЛЮ] ${message.body}`;
       } else if (message.message_type === THREAD_MESSAGE_TYPE.CHAT) {
         line += ` [ЧАТ] [${message.user_name}] ${message.body}`;
       } else if (message.message_type === THREAD_MESSAGE_TYPE.COMMAND) {
