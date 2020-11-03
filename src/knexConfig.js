@@ -24,6 +24,13 @@ if (config.dbType === "sqlite") {
       ...config.mysqlOptions,
     },
   };
+} else if (config.dbType === "pg") {
+  console.log(`Using a PGSQL database:\n ${process.env.DB}`);
+
+  knexOptions = {
+    client: "pg",
+    connection: process.env.DB
+  };
 }
 
 module.exports = {
