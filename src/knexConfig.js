@@ -29,7 +29,9 @@ if (config.dbType === "sqlite") {
 
   knexOptions = {
     client: "pg",
-    connection: process.env.DB
+    connection: process.env.DB,
+    useNullAsDefault: true,
+    searchPath: ["knex", "mailbot"]
   };
 }
 

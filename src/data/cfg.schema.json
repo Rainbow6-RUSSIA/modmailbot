@@ -401,7 +401,8 @@
     "dbType": {
       "anyOf": [
         { "const": "sqlite" },
-        { "const": "mysql" }
+        { "const": "mysql" },
+        { "const": "pg" }
       ],
       "default": "sqlite"
     },
