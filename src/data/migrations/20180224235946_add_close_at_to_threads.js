@@ -1,6 +1,6 @@
 exports.up = async function (knex, Promise) {
   await knex.schema.table("threads", table => {
-    table.dateTime("scheduled_close_at").index().nullable().defaultTo(null).after("channel_id");
+    table.dateTime("scheduled_close_at", { useTz: false }).index().nullable().defaultTo(null).after("channel_id");
     table.string("scheduled_close_id", 20).nullable().defaultTo(null).after("channel_id");
     table.string("scheduled_close_name", 128).nullable().defaultTo(null).after("channel_id");
   });

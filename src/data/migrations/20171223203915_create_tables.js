@@ -7,7 +7,7 @@ exports.up = async function(knex, Promise) {
       table.string("user_id", 20).notNullable().index();
       table.string("user_name", 128).notNullable();
       table.string("channel_id", 20).nullable().unique();
-      table.dateTime("created_at").notNullable().index();
+      table.dateTime("created_at", { useTz: false }).notNullable().index();
     });
   }
 
@@ -21,7 +21,7 @@ exports.up = async function(knex, Promise) {
       table.text("body").notNullable();
       table.integer("is_anonymous").unsigned().notNullable();
       table.string("dm_message_id", 20).nullable().unique();
-      table.dateTime("created_at").notNullable().index();
+      table.dateTime("created_at", { useTz: false }).notNullable().index();
     });
   }
 
@@ -30,7 +30,7 @@ exports.up = async function(knex, Promise) {
       table.string("user_id", 20).primary().notNullable();
       table.string("user_name", 128).notNullable();
       table.string("blocked_by", 20).nullable();
-      table.dateTime("blocked_at").notNullable();
+      table.dateTime("blocked_at", { useTz: false }).notNullable();
     });
   }
 
@@ -40,7 +40,7 @@ exports.up = async function(knex, Promise) {
       table.text("body").notNullable();
       table.integer("is_anonymous").unsigned().notNullable();
       table.string("created_by", 20).nullable();
-      table.dateTime("created_at").notNullable();
+      table.dateTime("created_at", { useTz: false }).notNullable();
     });
   }
 };
