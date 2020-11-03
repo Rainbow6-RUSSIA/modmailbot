@@ -31,8 +31,15 @@ if (config.dbType === "sqlite") {
     client: "pg",
     connection: process.env.DB,
     useNullAsDefault: true,
-    searchPath: ["knex", "mailbot"]
-  };
+    searchPath: ["knex", "mailbot"],
+    pool: {
+      afterCreate: function(connection, callback) {
+        connection.query("SET TIME ZONE 'UTC';", function(err) {
+          callback(err, connection);
+        });
+      },
+    }
+  }
 }
 
 module.exports = {
