@@ -1,11 +1,10 @@
-const threads = require('../data/threads');
-const snippets = require('../data/snippets');
-const config = require('../config');
-const utils = require('../utils');
-const { parseArguments } = require('knub-command-manager');
+const threads = require("../data/threads");
+const snippets = require("../data/snippets");
+const utils = require("../utils");
+const { parseArguments } = require("knub-command-manager");
 
 const whitespaceRegex = /\s/;
-const quoteChars = ["'", '"'];
+const quoteChars = ["'", "\""];
 
 module.exports = ({ bot, knex, config, commands }) => {
   /**
@@ -21,13 +20,13 @@ module.exports = ({ bot, knex, config, commands }) => {
         const index = parseInt(match.slice(1, -1), 10) - 1;
         return (args[index] != null ? args[index] : match);
       })
-      .replace(/\\{/g, '{');
+      .replace(/\\{/g, "{");
   }
 
   /**
    * When a staff member uses a snippet (snippet prefix + trigger word), find the snippet and post it as a reply in the thread
    */
-  bot.on('messageCreate', async msg => {
+  bot.on("messageCreate", async msg => {
     if (! utils.messageIsOnInboxServer(msg)) return;
     if (! utils.isStaff(msg.member)) return;
 
@@ -75,7 +74,7 @@ module.exports = ({ bot, knex, config, commands }) => {
   });
 
   // Show or add a snippet
-  commands.addInboxServerCommand('snippet', '<trigger> [text$]', async (msg, args, thread) => {
+  commands.addInboxServerCommand("snippet", "<trigger> [text$]", async (msg, args, thread) => {
     const snippet = await snippets.get(args.trigger);
 
     if (snippet) {
@@ -97,10 +96,10 @@ module.exports = ({ bot, knex, config, commands }) => {
       }
     }
   }, {
-    aliases: ['s']
+    aliases: ["s"]
   });
 
-  commands.addInboxServerCommand('delete_snippet', '<trigger>', async (msg, args, thread) => {
+  commands.addInboxServerCommand("delete_snippet", "<trigger>", async (msg, args, thread) => {
     const snippet = await snippets.get(args.trigger);
     if (! snippet) {
       utils.postSystemMessageWithFallback(msg.channel, thread, `Шаблон "${args.trigger}" не существует!`);
@@ -110,10 +109,10 @@ module.exports = ({ bot, knex, config, commands }) => {
     await snippets.del(args.trigger);
     utils.postSystemMessageWithFallback(msg.channel, thread, `Шаблон "${args.trigger}" удален!`);
   }, {
-    aliases: ['ds']
+    aliases: ["ds"]
   });
 
-  commands.addInboxServerCommand('edit_snippet', '<trigger> [text$]', async (msg, args, thread) => {
+  commands.addInboxServerCommand("edit_snippet", "<trigger> <text$>", async (msg, args, thread) => {
     const snippet = await snippets.get(args.trigger);
     if (! snippet) {
       utils.postSystemMessageWithFallback(msg.channel, thread, `Шаблон "${args.trigger}" не существует!`);
@@ -125,14 +124,16 @@ module.exports = ({ bot, knex, config, commands }) => {
 
     utils.postSystemMessageWithFallback(msg.channel, thread, `Шаблон "${args.trigger}" изменен!`);
   }, {
-    aliases: ['es']
+    aliases: ["es"]
   });
 
-  commands.addInboxServerCommand('snippets', [], async (msg, args, thread) => {
+  commands.addInboxServerCommand("snippets", [], async (msg, args, thread) => {
     const allSnippets = await snippets.all();
     const triggers = allSnippets.map(s => s.trigger);
     triggers.sort();
 
-    utils.postSystemMessageWithFallback(msg.channel, thread, `Доступные шаблоны (префикс ${config.snippetPrefix}):\n${triggers.join(', ')}`);
+    utils.postSystemMessageWithFallback(msg.channel, thread, `Доступные шаблоны (префикс ${config.snippetPrefix}):\n${triggers.join(", ")}`);
+  }, {
+    aliases: ["s"]
   });
 };

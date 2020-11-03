@@ -1,9 +1,9 @@
-const moment = require('moment');
+const moment = require("moment");
 const threads = require("../data/threads");
-const utils = require('../utils');
-const config = require('../config');
+const utils = require("../utils");
+const config = require("../cfg");
 
-const {THREAD_STATUS} = require('../data/constants');
+const {THREAD_STATUS} = require("../data/constants");
 
 module.exports = ({ bot, knex, config, commands }) => {
   // Check for threads that are scheduled to be suspended and suspend them
@@ -29,20 +29,20 @@ module.exports = ({ bot, knex, config, commands }) => {
 
   scheduledSuspendLoop();
 
-  commands.addInboxThreadCommand('suspend cancel', [], async (msg, args, thread) => {
+  commands.addInboxThreadCommand("suspend cancel", [], async (msg, args, thread) => {
     // Cancel timed suspend
     if (thread.scheduled_suspend_at) {
       await thread.cancelScheduledSuspend();
-      thread.postSystemMessage(`Отмена запланированной заморозки`);
+      thread.postSystemMessage("Отмена запланированной заморозки");
     } else {
-      thread.postSystemMessage(`Заморозка треда не запланирована!`);
+      thread.postSystemMessage("Заморозка треда не запланирована!");
     }
   });
 
-  commands.addInboxThreadCommand('suspend', '[delay:delay]', async (msg, args, thread) => {
+  commands.addInboxThreadCommand("suspend", "[delay:delay]", async (msg, args, thread) => {
     if (args.delay) {
-      const suspendAt = moment.utc().add(args.delay, 'ms');
-      await thread.scheduleSuspend(suspendAt.format('YYYY-MM-DD HH:mm:ss'), msg.author);
+      const suspendAt = moment.utc().add(args.delay, "ms");
+      await thread.scheduleSuspend(suspendAt.format("YYYY-MM-DD HH:mm:ss"), msg.author);
 
       thread.postSystemMessage(`Заморозка треда запланирована через ${utils.humanizeDelay(args.delay)}. Используйте \`${config.prefix}suspend cancel\` для отмены.`);
 
@@ -50,18 +50,18 @@ module.exports = ({ bot, knex, config, commands }) => {
     }
 
     await thread.suspend();
-    thread.postSystemMessage(`**Тред заморожен!** Этот тред останется замороженным пока не будет выполнена команда \`!unsuspend\``);
+    thread.postSystemMessage("**Тред заморожен!** Этот тред останется замороженным пока не будет выполнена команда `!unsuspend`");
   });
 
-  commands.addInboxServerCommand('unsuspend', [], async (msg, args, thread) => {
+  commands.addInboxServerCommand("unsuspend", [], async (msg, args, thread) => {
     if (thread) {
-      thread.postSystemMessage(`Thread is not suspended`);
+      thread.postSystemMessage("Thread is not suspended");
       return;
     }
 
     thread = await threads.findSuspendedThreadByChannelId(msg.channel.id);
     if (! thread) {
-      thread.postSystemMessage(`Not in a thread`);
+      msg.channel.createMessage("Not in a thread");
       return;
     }
 
@@ -72,6 +72,6 @@ module.exports = ({ bot, knex, config, commands }) => {
     }
 
     await thread.unsuspend();
-    thread.postSystemMessage(`**Тред разморожен!**`);
+    thread.postSystemMessage("**Тред разморожен!**");
   });
 };
