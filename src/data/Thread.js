@@ -90,6 +90,7 @@ class Thread {
       let firstMessage;
 
       const textContent = typeof content === "string" ? content : content.content;
+      const contentObj = typeof content === "string" ? {} : content;
       if (textContent) {
         // Text content is included, chunk it and send it as individual messages.
         // Files (attachments) are only sent with the last message.
@@ -97,8 +98,8 @@ class Thread {
         for (const [i, chunk] of chunks.entries()) {
           // Only send embeds, files, etc. with the last message
           const msg = (i === chunks.length - 1)
-            ? await bot.createMessage(this.channel_id, chunk, file)
-            : await bot.createMessage(this.channel_id, chunk);
+            ? await bot.createMessage(this.channel_id, { ...contentObj, content: chunk }, file)
+            : await bot.createMessage(this.channel_id, { ...contentObj, content: chunk, embed: null });
 
           firstMessage = firstMessage || msg;
         }
@@ -214,7 +215,7 @@ class Thread {
     const moderatorName = config.useNicknames && moderator.nick ? moderator.nick : moderator.user.username;
     const roleName = await getModeratorThreadDisplayRoleName(moderator, this.id);
 
-    if (config.allowInlineSnippets) {
+    if (config.allowSnippets && config.allowInlineSnippets) {
       // Replace {{snippet}} with the corresponding snippet
       // The beginning and end of the variable - {{ and }} - can be changed with the config options
       // config.inlineSnippetStart and config.inlineSnippetEnd
@@ -480,6 +481,7 @@ class Thread {
    * @param {boolean} [allowedMentions.everyone]
    * @param {boolean|string[]} [allowedMentions.roles]
    * @param {boolean|string[]} [allowedMentions.users]
+   * @param {boolean} [allowedMentions.postToThreadChannel]
    * @returns {Promise<void>}
    */
   async sendSystemMessageToUser(text, opts = {}) {
@@ -494,12 +496,14 @@ class Thread {
     const dmContent = await formatters.formatSystemToUserDM(threadMessage);
     const dmMsg = await this._sendDMToUser(dmContent);
 
-    const inboxContent = await formatters.formatSystemToUserThreadMessage(threadMessage);
-    const finalInboxContent = typeof inboxContent === "string" ? { content: inboxContent } : inboxContent;
-    finalInboxContent.allowedMentions = opts.allowedMentions;
-    const inboxMsg = await this._postToThreadChannel(inboxContent);
+    if (opts.postToThreadChannel !== false) {
+      const inboxContent = await formatters.formatSystemToUserThreadMessage(threadMessage);
+      const finalInboxContent = typeof inboxContent === "string" ? {content: inboxContent} : inboxContent;
+      finalInboxContent.allowedMentions = opts.allowedMentions;
+      const inboxMsg = await this._postToThreadChannel(inboxContent);
+      threadMessage.inbox_message_id = inboxMsg.id;
+    }
 
-    threadMessage.inbox_message_id = inboxMsg.id;
     threadMessage.dm_channel_id = dmMsg.channel.id;
     threadMessage.dm_message_id = dmMsg.id;
 

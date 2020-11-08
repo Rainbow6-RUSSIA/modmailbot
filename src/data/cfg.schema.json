@@ -173,7 +173,18 @@
       "$ref": "#/definitions/customBoolean",
       "default": true
     },
-
+    "allowBlock": {
+      "$ref": "#/definitions/customBoolean",
+      "default": true
+    },
+    "allowSuspend": {
+      "$ref": "#/definitions/customBoolean",
+      "default": true
+    },
+    "allowSnippets": {
+      "$ref": "#/definitions/customBoolean",
+      "default": true
+    },
     "enableGreeting": {
       "$ref": "#/definitions/customBoolean",
       "default": false
@@ -360,6 +371,11 @@
     "pinThreadHeader": {
       "$ref": "#/definitions/customBoolean",
       "default": false
+    },
+
+    "showResponseMessageInThreadChannel": {
+      "$ref": "#/definitions/customBoolean",
+      "default": true
     },
 
     "logStorage": {

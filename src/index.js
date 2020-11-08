@@ -19,17 +19,59 @@ try {
   process.exit(1);
 }
 
+const utils = require("./utils");
+
 // Error handling
+// Force crash on unhandled rejections and uncaught exceptions.
+// Use something like forever/pm2 to restart.
+const MAX_STACK_TRACE_LINES = 8;
+
 function errorHandler(err) {
   // Unknown message types (nitro boosting messages at the time) should be safe to ignore
   if (err && err.message && err.message.startsWith("Unhandled MESSAGE_CREATE type")) {
     return;
   }
 
-  // For everything else, crash with the error
-  console.error(err);
+  if (err) {
+    if (typeof err === "string") {
+      console.error(`Error: ${err}`);
+    } else if (err instanceof utils.BotError) {
+      // Leave out stack traces for BotErrors (the message has enough info)
+      console.error(`Error: ${err.message}`);
+    } else if (err.message === "Disallowed intents specified") {
+      let fullMessage = "Error: Disallowed intents specified";
+      fullMessage += "\n\n";
+      fullMessage += "To run the bot, you must enable 'Server Members Intent' on your bot's page in the Discord Developer Portal:";
+      fullMessage += "\n\n";
+      fullMessage += "1. Go to https://discord.com/developers/applications"
+      fullMessage += "2. Click on your bot"
+      fullMessage += "3. Click 'Bot' on the sidebar"
+      fullMessage += "4. Turn on 'Server Members Intent'"
+
+      console.error(fullMessage);
+    } else {
+      // Truncate long stack traces for other errors
+      const stack = err.stack || "";
+      let stackLines = stack.split("\n");
+      if (stackLines.length > (MAX_STACK_TRACE_LINES + 2)) {
+        stackLines = stackLines.slice(0, MAX_STACK_TRACE_LINES);
+        stackLines.push(`    ...stack trace truncated to ${MAX_STACK_TRACE_LINES} lines`);
+      }
+      const finalStack = stackLines.join("\n");
+
+      if (err.code) {
+        console.error(`Error ${err.code}: ${finalStack}`);
+      } else {
+        console.error(`Error: ${finalStack}`);
+      }
+    }
+  } else {
+    console.error("Unknown error occurred");
+  }
+
   process.exit(1);
 }
+
 process.on("uncaughtException", errorHandler);
 process.on("unhandledRejection", errorHandler);
 
@@ -47,21 +89,8 @@ try {
 }
 
 const config = require("./cfg");
-const utils = require("./utils");
 const main = require("./main");
 const knex = require("./knex");
-
-// Force crash on unhandled rejections (use something like forever/pm2 to restart)
-process.on("unhandledRejection", err => {
-  if (err instanceof utils.BotError || (err && err.code)) {
-    // We ignore stack traces for BotErrors (the message has enough info) and network errors from Eris (their stack traces are unreadably long)
-    console.error(`Error: ${err.message}`);
-  } else {
-    console.error(err);
-  }
-
-  process.exit(1);
-});
 
 (async function() {
   // Make sure the database is up to date

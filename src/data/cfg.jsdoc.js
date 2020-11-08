@@ -33,6 +33,9 @@
  * @property {boolean} [rolesInThreadHeader=false]
  * @property {boolean} [allowStaffEdit=true]
  * @property {boolean} [allowStaffDelete=true]
+ * @property {boolean} [allowBlock=true]
+ * @property {boolean} [allowSuspend=true]
+ * @property {boolean} [allowSnippets=true]
  * @property {boolean} [enableGreeting=false]
  * @property {string} [greetingMessage]
  * @property {string} [greetingAttachment]
@@ -65,6 +68,7 @@
  * @property {boolean} [autoAlert=false]
  * @property {string} [autoAlertDelay="2m"] Delay before auto-alert kicks in. Uses the same format as timed close; for example 1m30s for 1 minute and 30 seconds.
  * @property {boolean} [pinThreadHeader=false]
+ * @property {boolean} [showResponseMessageInThreadChannel=true]
  * @property {string} [logStorage="local"]
  * @property {object} [logOptions]
  * @property {string} logOptions.attachmentDirectory

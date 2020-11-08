@@ -97,16 +97,28 @@ If enabled, staff members can delete their own replies in modmail threads with `
 **Default:** `on`  
 If enabled, staff members can edit their own replies in modmail threads with `!edit`
 
+#### allowBlock
+**Default:** `on`  
+If enabled, staff members can block a user from using modmail with `!block`
+
+#### allowSuspend
+**Default:** `on`  
+If enabled, staff members can suspend a user from using modmail with `!suspend`
+
+#### allowSnippets
+**Default:** `on`  
+If enabled, staff members can use [Snippets](snippets.md)
+
 #### allowInlineSnippets
 **Default:** `on`  
-If enabled, snippets can be included *within* replies by wrapping the snippet's name in {{ and }}.  
+If `allowSnippets` is enabled, this option controls whether the snippets can be included *within* replies by wrapping the snippet's name in {{ and }}.  
 E.g. `!r Hello! {{rules}}`
+
+See [inlineSnippetStart](#inlineSnippetStart) and [inlineSnippetEnd](#inlineSnippetEnd) to customize the symbols used.
 
 #### allowChangingDisplayRole
 **Default:** `on`  
 If enabled, moderators can change the role that's shown with their replies to any role they currently have using the `!role` command.
-
-See [inlineSnippetStart](#inlineSnippetStart) and [inlineSnippetEnd](#inlineSnippetEnd) to customize the symbols used.
 
 #### alwaysReply
 **Default:** `off`  
@@ -319,7 +331,8 @@ Required amount of time (in minutes) the user must be a member of the server bef
 
 #### responseMessage
 **Default:** `Thank you for your message! Our mod team will reply to you here as soon as possible.`  
-The bot's response to the user when they message the bot and open a new modmail thread
+The bot's response to the user when they message the bot and open a new modmail thread.  
+If you have a multi-line or otherwise long `responseMessage`, you might want to turn off [showResponseMessageInThreadChannel](#showResponseMessageInThreadChannel) to reduce clutter in the thread channel on the inbox server.
 
 #### rolesInThreadHeader
 **Default:** `off`  
@@ -335,6 +348,11 @@ serverGreetings.94882524378968064.attachment = greeting.png
 serverGreetings.541484311354933258.message[] = Welcome to server ID 541484311354933258!
 serverGreetings.541484311354933258.message[] = Second line of the greeting.
 ```
+
+#### showResponseMessageInThreadChannel
+**Default:** `on`  
+Whether to show the [responseMessage](#responseMessage) sent to the user in the thread channel on the inbox server as well.  
+If you have a multi-line or otherwise long `responseMessage`, it might be a good idea to turn this off to reduce clutter.
 
 #### smallAttachmentLimit
 **Default:** `2097152`  
