@@ -8,6 +8,10 @@ if (nodeMajorVersion < 12) {
   process.exit(1);
 }
 
+// Print out bot and Node.js version
+const { getPrettyVersion } = require("./botVersion");
+console.log(`Starting Modmail ${getPrettyVersion()} on Node.js ${process.versions.node} (${process.arch})`);
+
 // Verify node modules have been installed
 const fs = require("fs");
 const path = require("path");
@@ -19,7 +23,8 @@ try {
   process.exit(1);
 }
 
-const utils = require("./utils");
+const { BotError } = require("./BotError");
+const { PluginInstallationError } = require("./PluginInstallationError");
 
 // Error handling
 // Force crash on unhandled rejections and uncaught exceptions.
@@ -35,7 +40,7 @@ function errorHandler(err) {
   if (err) {
     if (typeof err === "string") {
       console.error(`Error: ${err}`);
-    } else if (err instanceof utils.BotError) {
+    } else if (err instanceof BotError) {
       // Leave out stack traces for BotErrors (the message has enough info)
       console.error(`Error: ${err.message}`);
     } else if (err.message === "Disallowed intents specified") {
@@ -49,6 +54,9 @@ function errorHandler(err) {
       fullMessage += "4. Turn on 'Server Members Intent'"
 
       console.error(fullMessage);
+    } else if (err instanceof PluginInstallationError) {
+      // Don't truncate PluginInstallationErrors as they can get lengthy
+      console.error(err);
     } else {
       // Truncate long stack traces for other errors
       const stack = err.stack || "";
@@ -88,11 +96,11 @@ try {
   process.exit(1);
 }
 
-const config = require("./cfg");
-const main = require("./main");
-const knex = require("./knex");
-
 (async function() {
+  require("./cfg");
+  const main = require("./main");
+  const knex = require("./knex");
+
   // Make sure the database is up to date
   const [completed, newMigrations] = await knex.migrate.list();
   if (newMigrations.length > 0) {

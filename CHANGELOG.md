@@ -1,4 +1,31 @@
 # Changelog
+For instructions on how to update the bot, see **[✨ Updating the bot](docs/updating.md)**
+
+## v3.3.0
+
+**Breaking changes:**
+* The default value for [`inboxServerPermission`](docs/configuration.md#inboxServerPermission) is now `manageMessages`
+  * This means that after updating, if you haven't set `inboxServerPermission` in your `config.ini`,
+    only those members with the "Manage Messages" permission on the inbox server will be able to use the bot's commands
+* The default value for [`mentionRole`](docs/configuration.md#mentionRole) is now `none`
+  * To turn `@here` pings back on for new threads, set `mentionRole = here` in your `config.ini`
+
+**General changes:**
+* New option: `showResponseMessageInThreadChannel`
+  * Controls whether the bot's response message is shown in the thread channel
+* Bot and Node.js version is now shown on bot start-up
+* `!close silent` can now also be used with `!close -silent` and `!close -s` ([#528](https://github.com/Dragory/modmailbot/pull/528) by [@SnowyLuma](https://github.com/SnowyLuma))
+* `!close cancel` can now also be used with `!close -cancel` and `!close -c`
+* `config.example.ini` now contains several common options by default
+* When starting the bot via command line, you can now specify which config file to load with the `--config`/`-c` CLI option
+  * E.g. `npm start -- -c my-other-config.ini` (note the `--` between `npm start` and the option)
+* Updated bot dependencies
+
+**Plugins:**
+* Plugins are now installed before connecting to the Discord Gateway
+* Fix GitHub-based NPM plugins requiring Git to be installed to work
+  * If you need to install GitHub-based plugins with Git after this change, set `useGitForGitHubPlugins = on` in your config
+* Plugin installation errors are no longer truncated
 
 ## v3.2.0
 
@@ -11,7 +38,7 @@
 * Improved error messages and error handling
   * Removes at least one instance of ECONNRESET errors
 * Fixed issue where NPM plugins would not install on Windows
-* Fixed issue where mentions by the bot were not working in certain situations ([#496] by [@DarkView](https://github.com/DarkView))
+* Fixed issue where mentions by the bot were not working in certain situations ([#496](https://github.com/Dragory/modmailbot/pull/496) by [@DarkView](https://github.com/DarkView))
 * Fixed issue where long system messages (primarily from plugins) would not get chunked properly and would throw an error instead
 
 **Plugins:**

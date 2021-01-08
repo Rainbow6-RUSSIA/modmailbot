@@ -103,7 +103,7 @@
     },
     "mentionRole": {
       "type": "string",
-      "default": "here"
+      "default": "none"
     },
     "pingOnBotMention": {
       "$ref": "#/definitions/customBoolean",
@@ -115,7 +115,7 @@
 
     "inboxServerPermission": {
       "$ref": "#/definitions/stringArray",
-      "default": []
+      "default": ["manageMessages"]
     },
     "alwaysReply": {
       "$ref": "#/definitions/customBoolean",
@@ -407,6 +407,11 @@
 
     "url": {
       "type": "string"
+    },
+
+    "useGitForGitHubPlugins": {
+      "$ref": "#/definitions/customBoolean",
+      "default": false
     },
 
     "extraIntents": {

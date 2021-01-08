@@ -222,7 +222,7 @@ Alias for [`serverGreetings`](#serverGreetings)
 If enabled, the bot attempts to ignore common "accidental" messages that would start a new thread, such as "ok", "thanks", etc.
 
 #### inboxServerPermission
-**Default:** *None*  
+**Default:** `manageMessages`  
 **Accepts multiple values.** Permission name, user id, or role id required to use bot commands on the inbox server.
 See ["Permissions" on this page](https://abal.moe/Eris/docs/reference) for supported permission names (e.g. `kickMembers`).
 
@@ -264,10 +264,9 @@ Alias for [mainServerId](#mainServerId)
 Alias for [inboxServerId](#inboxServerId)
 
 #### mentionRole
-**Default:** `here`  
+**Default:** `none`  
 **Accepts multiple values.** Role that is mentioned when new threads are created or the bot is mentioned.
 Accepted values are `none`, `here`, `everyone`, or a role id.
-Requires `pingOnBotMention` to be enabled.
 Set to `none` to disable these pings entirely.
 
 #### mentionUserInThreadHeader
@@ -368,7 +367,7 @@ Prefix to use snippets anonymously
 
 #### status
 **Default:** `Message me for help`  
-The bot's status text. Set to an empty value - `status = ""` - to disable.
+The bot's status text. Set to `none` to disable.
 
 #### statusType
 **Default:** `playing`  
@@ -410,6 +409,11 @@ URL to use for attachment and log links. Defaults to `http://IP:PORT`.
 #### useNicknames
 **Default:** `off`  
 If enabled, mod replies will use their nicknames (on the inbox server) instead of their usernames
+
+#### useGitForGitHubPlugins
+**Default:** `off`  
+If enabled, GitHub plugins will be installed with Git rather than by downloading the archive's tarball.  
+This is useful if you are installing plugins from private repositories that require ssh keys for authentication.
 
 ## Advanced options
 
