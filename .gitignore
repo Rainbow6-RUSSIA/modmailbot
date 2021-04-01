@@ -62,7 +62,10 @@ typings/
 /.vscode
 /.idea
 /node_modules
-/config.*
-!/config.example.ini
 /welcome.png
 /update.sh
+
+# Config files
+/config.*
+*.config.ini
+!/config.example.ini
