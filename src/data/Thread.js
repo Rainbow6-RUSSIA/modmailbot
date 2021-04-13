@@ -801,7 +801,7 @@ class Thread {
       body: newText,
     });
 
-    const formattedThreadMessage = formatters.formatStaffReplyThreadMessage(newThreadMessage, moderator);
+    const formattedThreadMessage = formatters.formatStaffReplyThreadMessage(newThreadMessage);
     const formattedDM = formatters.formatStaffReplyDM(newThreadMessage);
 
     // Same restriction as in replies. Because edits could theoretically change the number of messages a reply takes, we enforce replies
@@ -825,7 +825,7 @@ class Thread {
       editThreadMessage.setMetadataValue("originalThreadMessage", threadMessage);
       editThreadMessage.setMetadataValue("newBody", newText);
 
-      const threadNotification = formatters.formatStaffReplyEditNotificationThreadMessage(editThreadMessage);
+      const threadNotification = formatters.formatStaffReplyEditNotificationThreadMessage(editThreadMessage, moderator);
       const inboxMessage = await this._postToThreadChannel(threadNotification);
       editThreadMessage.inbox_message_id = inboxMessage.id;
       await this._addThreadMessageToDB(editThreadMessage.getSQLProps());
