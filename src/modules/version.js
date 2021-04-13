@@ -17,7 +17,7 @@ module.exports = ({ bot, knex, config, commands }) => {
     if (config.updateNotifications) {
       const availableUpdate = await updates.getAvailableUpdate();
       if (availableUpdate) {
-        response += ` (version ${availableUpdate} available)`;
+        response += ` (версия ${availableUpdate} доступна)`;
       }
     }
 

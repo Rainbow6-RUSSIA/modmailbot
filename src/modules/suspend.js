@@ -56,13 +56,13 @@ module.exports = ({ bot, knex, config, commands }) => {
 
   commands.addInboxServerCommand("unsuspend", [], async (msg, args, thread) => {
     if (thread) {
-      thread.postSystemMessage("Thread is not suspended");
+      thread.postSystemMessage("Тред не заморожен");
       return;
     }
 
     thread = await threads.findSuspendedThreadByChannelId(msg.channel.id);
     if (! thread) {
-      msg.channel.createMessage("Not in a thread");
+      msg.channel.createMessage("Команда доступна только в тредах");
       return;
     }
 

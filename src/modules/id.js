@@ -15,7 +15,7 @@ module.exports = ({ bot, knex, config, commands }) => {
     /** @type {ThreadMessage} */
     const threadMessage = await thread.findThreadMessageByMessageNumber(args.messageNumber);
     if (! threadMessage) {
-      thread.postSystemMessage("No message in this thread with that number");
+      thread.postSystemMessage("Нет сообщения в треде с таким номером");
       return;
     }
 
@@ -27,10 +27,10 @@ module.exports = ({ bot, knex, config, commands }) => {
       : `https://discord.com/channels/@me/${channelId}/${threadMessage.dm_message_id}`;
 
     const parts = [
-      `Details for message \`${threadMessage.message_number}\`:`,
-      `Channel ID: \`${channelId}\``,
-      `Message ID: \`${threadMessage.dm_message_id}\``,
-      `Link: <${messageLink}>`,
+      `Подробности сообщения \`${threadMessage.message_number}\`:`,
+      `ID канала: \`${channelId}\``,
+      `ID сообщения: \`${threadMessage.dm_message_id}\``,
+      `Ссылка: <${messageLink}>`,
     ];
 
     thread.postSystemMessage(parts.join("\n"));

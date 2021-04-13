@@ -7,7 +7,7 @@ module.exports = ({ bot, knex, config, commands }) => {
   // These messages get relayed back to the DM thread between the bot and the user
   commands.addInboxThreadCommand("reply", "[text$]", async (msg, args, thread) => {
     if (! args.text && msg.attachments.length === 0) {
-      utils.postError(msg.channel, "Text or attachment required");
+      utils.postError(msg.channel, "Нельзя отправить пустое сообщение");
       return;
     }
 
@@ -20,7 +20,7 @@ module.exports = ({ bot, knex, config, commands }) => {
   // Anonymous replies only show the role, not the username
   commands.addInboxThreadCommand("anonreply", "[text$]", async (msg, args, thread) => {
     if (! args.text && msg.attachments.length === 0) {
-      utils.postError(msg.channel, "Text or attachment required");
+      utils.postError(msg.channel, "Нельзя отправить пустое сообщение");
       return;
     }
 
@@ -34,14 +34,14 @@ module.exports = ({ bot, knex, config, commands }) => {
     commands.addInboxThreadCommand("edit", "<messageNumber:number> <text:string$>", async (msg, args, thread) => {
       const threadMessage = await thread.findThreadMessageByMessageNumber(args.messageNumber);
       if (! threadMessage) {
-        utils.postError(msg.channel, "Unknown message number");
+        utils.postError(msg.channel, "Сообщение не найдено");
         return;
       }
 
-      if (threadMessage.user_id !== msg.author.id) {
-        utils.postError(msg.channel, "You can only edit your own replies");
-        return;
-      }
+      // if (threadMessage.user_id !== msg.author.id) {
+      //   utils.postError(msg.channel, "Вы можете редактировать только свои ответы");
+      //   return;
+      // }
 
       const edited = await thread.editStaffReply(msg.member, threadMessage, args.text);
       if (edited) msg.delete().catch(utils.noop);
@@ -54,14 +54,14 @@ module.exports = ({ bot, knex, config, commands }) => {
     commands.addInboxThreadCommand("delete", "<messageNumber:number>", async (msg, args, thread) => {
       const threadMessage = await thread.findThreadMessageByMessageNumber(args.messageNumber);
       if (! threadMessage) {
-        utils.postError(msg.channel, "Unknown message number");
+        utils.postError(msg.channel, "Сообщение не найдено");
         return;
       }
 
-      if (threadMessage.user_id !== msg.author.id) {
-        utils.postError(msg.channel, "You can only delete your own replies");
-        return;
-      }
+      // if (threadMessage.user_id !== msg.author.id) {
+      //   utils.postError(msg.channel, "You can only delete your own replies");
+      //   return;
+      // }
 
       await thread.deleteStaffReply(msg.member, threadMessage);
       msg.delete().catch(utils.noop);

@@ -11,7 +11,7 @@ module.exports = ({ bot }) => {
 
             const thread = await threads.findOpenThreadByUserId(member.id);
             if (thread != null) {
-                await thread.postSystemMessage(`***The user joined the guild ${guild.name}.***`);
+                await thread.postSystemMessage(`***Пользователь присоединился к ${guild.name}.***`);
             }
         });
     }
@@ -24,7 +24,7 @@ module.exports = ({ bot }) => {
 
             const thread = await threads.findOpenThreadByUserId(member.id);
             if (thread != null) {
-                await thread.postSystemMessage(`***The user left the guild ${guild.name}.***`);
+                await thread.postSystemMessage(`***Пользователь покинул ${guild.name}.***`);
             }
         });
     }
