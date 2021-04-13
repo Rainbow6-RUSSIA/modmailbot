@@ -146,32 +146,32 @@ const defaultFormatters = {
     return result;
   },
 
- formatStaffReplyEditNotificationThreadMessage(threadMessage) {
+ formatStaffReplyEditNotificationThreadMessage(threadMessage, moderator) {
     const originalThreadMessage = threadMessage.getMetadataValue("originalThreadMessage");
     const newBody = threadMessage.getMetadataValue("newBody");
 
-    let content = `**${originalThreadMessage.user_name}** (\`${originalThreadMessage.user_id}\`) edited reply \`${originalThreadMessage.message_number}\``;
+    let content = `**${moderator ? moderator.username : originalThreadMessage.user_name}** (\`${moderator ? moderator.id : originalThreadMessage.user_id}\`) отредактировал ответ \`${originalThreadMessage.message_number}\``;
 
     if (originalThreadMessage.body.length < 200 && newBody.length < 200) {
       // Show edits of small messages inline
-      content += ` from \`${utils.disableInlineCode(originalThreadMessage.body)}\` to \`${newBody}\``;
+      content += ` из \`${utils.disableInlineCode(originalThreadMessage.body)}\` в \`${newBody}\``;
     } else {
       // Show edits of long messages in two code blocks
       content += ":";
-      content += `\n\nBefore:\n\`\`\`${utils.disableCodeBlocks(originalThreadMessage.body)}\`\`\``;
-      content += `\nAfter:\n\`\`\`${utils.disableCodeBlocks(newBody)}\`\`\``;
+      content += `\n\nДо:\n\`\`\`${utils.disableCodeBlocks(originalThreadMessage.body)}\`\`\``;
+      content += `\nПосле:\n\`\`\`${utils.disableCodeBlocks(newBody)}\`\`\``;
     }
 
     return content;
   },
 
-  formatStaffReplyDeletionNotificationThreadMessage(threadMessage) {
+  formatStaffReplyDeletionNotificationThreadMessage(threadMessage, moderator) {
     const originalThreadMessage = threadMessage.getMetadataValue("originalThreadMessage");
-    let content = `**${originalThreadMessage.user_name}** (\`${originalThreadMessage.user_id}\`) deleted reply \`${originalThreadMessage.message_number}\``;
+    let content = `**${moderator ? moderator.username : originalThreadMessage.user_name}** (\`${moderator ? moderator.id : originalThreadMessage.user_id}\`) удалил ответ \`${originalThreadMessage.message_number}\``;
 
     if (originalThreadMessage.body.length < 200) {
       // Show the original content of deleted small messages inline
-      content += ` (message content: \`${utils.disableInlineCode(originalThreadMessage.body)}\`)`;
+      content += ` (содержимое сообщения: \`${utils.disableInlineCode(originalThreadMessage.body)}\`)`;
     } else {
       // Show the original content of deleted large messages in a code block
       content += ":\n```" + utils.disableCodeBlocks(originalThreadMessage.body) + "```";

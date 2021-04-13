@@ -240,7 +240,7 @@ class Thread {
       );
 
       if (config.errorOnUnknownInlineSnippet && unknownSnippets.size > 0) {
-        this.postSystemMessage(`The following snippets used in the reply do not exist:\n${Array.from(unknownSnippets).join(", ")}`);
+        this.postSystemMessage(`Следующие использованные в ответе шаблоны не существуют:\n${Array.from(unknownSnippets).join(", ")}`);
         return false;
       }
     }
@@ -279,7 +279,7 @@ class Thread {
     // Because moderator replies have to be editable, we enforce them to fit within 1 message
     if (! utils.messageContentIsWithinMaxLength(dmContent) || ! utils.messageContentIsWithinMaxLength(inboxContent)) {
       await this._deleteThreadMessage(threadMessage.id);
-      await this.postSystemMessage("Reply is too long! Make sure your reply is under 2000 characters total, moderator name in the reply included.");
+      await this.postSystemMessage("Ответ слишком длинный! Убедитесь, что ответ, включая имя модератора, занимает меньше 2000 символов.");
       return false;
     }
 
@@ -357,27 +357,27 @@ class Thread {
       }
 
       if (! applicationName) {
-        applicationName = "Unknown Application";
+        applicationName = "Неизвестное приложение";
       }
 
       let activityText;
       if (msg.activity.type === DISCORD_MESSAGE_ACTIVITY_TYPES.JOIN || msg.activity.type === DISCORD_MESSAGE_ACTIVITY_TYPES.JOIN_REQUEST) {
-        activityText = "join a game";
+        activityText = "присоединиться к игре";
       } else if (msg.activity.type === DISCORD_MESSAGE_ACTIVITY_TYPES.SPECTATE) {
-        activityText = "spectate";
+        activityText = "наблюдать";
       } else if (msg.activity.type === DISCORD_MESSAGE_ACTIVITY_TYPES.LISTEN) {
-        activityText = "listen along";
+        activityText = "слушать";
       } else {
         activityText = "do something";
       }
 
-      messageContent += `\n\n*<This message contains an invite to ${activityText} on ${applicationName}>*`;
+      messageContent += `\n\n*<Сообщение содержит приглашение ${activityText} в ${applicationName}>*`;
       messageContent = messageContent.trim();
     }
 
     if (msg.stickers && msg.stickers.length) {
       const stickerLines = msg.stickers.map(sticker => {
-        return `*<Message contains sticker "${sticker.name}">*`;
+        return `*<Сообщение содержит стикер "${sticker.name}">*`;
       });
 
       messageContent += "\n\n" + stickerLines.join("\n");
@@ -801,13 +801,13 @@ class Thread {
       body: newText,
     });
 
-    const formattedThreadMessage = formatters.formatStaffReplyThreadMessage(newThreadMessage);
+    const formattedThreadMessage = formatters.formatStaffReplyThreadMessage(newThreadMessage, moderator);
     const formattedDM = formatters.formatStaffReplyDM(newThreadMessage);
 
     // Same restriction as in replies. Because edits could theoretically change the number of messages a reply takes, we enforce replies
     // to fit within 1 message to avoid the headache and issues caused by that.
     if (! utils.messageContentIsWithinMaxLength(formattedDM) || ! utils.messageContentIsWithinMaxLength(formattedThreadMessage)) {
-      await this.postSystemMessage("Edited reply is too long! Make sure the edit is under 2000 characters total, moderator name in the reply included.");
+      await this.postSystemMessage("Отредактированный ответ слишком длинный! Убедитесь, что ответ, включая имя модератора, занимает меньше 2000 символов.");
       return false;
     }
 
@@ -856,7 +856,7 @@ class Thread {
       });
       deletionThreadMessage.setMetadataValue("originalThreadMessage", threadMessage);
 
-      const threadNotification = formatters.formatStaffReplyDeletionNotificationThreadMessage(deletionThreadMessage);
+      const threadNotification = formatters.formatStaffReplyDeletionNotificationThreadMessage(deletionThreadMessage, moderator);
       const inboxMessage = await this._postToThreadChannel(threadNotification);
       deletionThreadMessage.inbox_message_id = inboxMessage.id;
       await this._addThreadMessageToDB(deletionThreadMessage.getSQLProps());
