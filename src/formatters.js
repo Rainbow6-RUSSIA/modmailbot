@@ -146,11 +146,11 @@ const defaultFormatters = {
     return result;
   },
 
- formatStaffReplyEditNotificationThreadMessage(threadMessage, moderator) {
+ formatStaffReplyEditNotificationThreadMessage(threadMessage) {
     const originalThreadMessage = threadMessage.getMetadataValue("originalThreadMessage");
     const newBody = threadMessage.getMetadataValue("newBody");
 
-    let content = `**${moderator ? moderator.username : originalThreadMessage.user_name}** (\`${moderator ? moderator.id : originalThreadMessage.user_id}\`) отредактировал ответ \`${originalThreadMessage.message_number}\``;
+    let content = `**${threadMessage.user_name}** (\`${threadMessage.user_id}\`) отредактировал ответ \`${originalThreadMessage.message_number}\``;
 
     if (originalThreadMessage.body.length < 200 && newBody.length < 200) {
       // Show edits of small messages inline
@@ -165,9 +165,9 @@ const defaultFormatters = {
     return content;
   },
 
-  formatStaffReplyDeletionNotificationThreadMessage(threadMessage, moderator) {
+  formatStaffReplyDeletionNotificationThreadMessage(threadMessage) {
     const originalThreadMessage = threadMessage.getMetadataValue("originalThreadMessage");
-    let content = `**${moderator ? moderator.username : originalThreadMessage.user_name}** (\`${moderator ? moderator.id : originalThreadMessage.user_id}\`) удалил ответ \`${originalThreadMessage.message_number}\``;
+    let content = `**${threadMessage.user_name}** (\`${threadMessage.user_id}\`) удалил ответ \`${originalThreadMessage.message_number}\``;
 
     if (originalThreadMessage.body.length < 200) {
       // Show the original content of deleted small messages inline
@@ -243,11 +243,11 @@ const defaultFormatters = {
       if (message.message_type === THREAD_MESSAGE_TYPE.FROM_USER) {
         line += ` [ОТ ПОЛЬЗОВАТЕЛЯ] [${message.user_name}] ${message.body}`;
       } else if (message.message_type === THREAD_MESSAGE_TYPE.TO_USER) {
-        if (opts.verbose) {
+        // if (opts.verbose) {
           line += ` [К ПОЛЬЗОВАТЕЛЮ] [${message.message_number || "0"}] [${message.user_name}]`;
-        } else {
-          line += ` [К ПОЛЬЗОВАТЕЛЮ] [${message.user_name}]`;
-        }
+        // } else {
+        //   line += ` [К ПОЛЬЗОВАТЕЛЮ] [${message.user_name}]`;
+        // }
 
         if (message.use_legacy_format) {
           // Legacy format (from pre-2.31.0) includes the role and username in the message body, so serve that as is
@@ -275,13 +275,13 @@ const defaultFormatters = {
         line += ` [КОМАНДА] [${message.user_name}] ${message.body}`;
       } else if (message.message_type === THREAD_MESSAGE_TYPE.REPLY_EDITED) {
         const originalThreadMessage = message.getMetadataValue("originalThreadMessage");
-        line += ` [СООБЩЕНИЕ ОТРЕДАКТИРОВАНО] ${originalThreadMessage.user_name} отредактировал сообщение ${originalThreadMessage.message_number}:`;
-        line += `\n\nДо:\n${originalThreadMessage.body}`;
+        line += ` [СООБЩЕНИЕ ОТРЕДАКТИРОВАНО] ${message.user_name} отредактировал сообщение ${originalThreadMessage.message_number}:`;
+        line += `\nДо:\n${originalThreadMessage.body}`;
         line += `\n\nПосле:\n${message.getMetadataValue("newBody")}`;
       } else if (message.message_type === THREAD_MESSAGE_TYPE.REPLY_DELETED) {
         const originalThreadMessage = message.getMetadataValue("originalThreadMessage");
-        line += ` [СООБЩЕНИЕ УДАЛЕНО] ${originalThreadMessage.user_name} удалил сообщение ${originalThreadMessage.message_number}:`;
-        line += `\n\n${originalThreadMessage.body}`;
+        line += ` [СООБЩЕНИЕ УДАЛЕНО] ${message.user_name} удалил сообщение ${originalThreadMessage.message_number}:`;
+        line += `\n${originalThreadMessage.body}`;
       } else {
         line += ` [${message.user_name}] ${message.body}`;
       }

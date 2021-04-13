@@ -817,15 +817,15 @@ class Thread {
     if (! opts.quiet) {
       const editThreadMessage = new ThreadMessage({
         message_type: THREAD_MESSAGE_TYPE.REPLY_EDITED,
-        user_id: null,
-        user_name: "",
+        user_id: moderator.id,
+        user_name: moderator.username,
         body: "",
         is_anonymous: 0,
       });
       editThreadMessage.setMetadataValue("originalThreadMessage", threadMessage);
       editThreadMessage.setMetadataValue("newBody", newText);
 
-      const threadNotification = formatters.formatStaffReplyEditNotificationThreadMessage(editThreadMessage, moderator);
+      const threadNotification = formatters.formatStaffReplyEditNotificationThreadMessage(editThreadMessage);
       const inboxMessage = await this._postToThreadChannel(threadNotification);
       editThreadMessage.inbox_message_id = inboxMessage.id;
       await this._addThreadMessageToDB(editThreadMessage.getSQLProps());
@@ -849,14 +849,14 @@ class Thread {
     if (! opts.quiet) {
       const deletionThreadMessage = new ThreadMessage({
         message_type: THREAD_MESSAGE_TYPE.REPLY_DELETED,
-        user_id: null,
-        user_name: "",
+        user_id: moderator.id,
+        user_name: moderator.username,
         body: "",
         is_anonymous: 0,
       });
       deletionThreadMessage.setMetadataValue("originalThreadMessage", threadMessage);
 
-      const threadNotification = formatters.formatStaffReplyDeletionNotificationThreadMessage(deletionThreadMessage, moderator);
+      const threadNotification = formatters.formatStaffReplyDeletionNotificationThreadMessage(deletionThreadMessage);
       const inboxMessage = await this._postToThreadChannel(threadNotification);
       deletionThreadMessage.inbox_message_id = inboxMessage.id;
       await this._addThreadMessageToDB(deletionThreadMessage.getSQLProps());
