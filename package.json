@@ -36,7 +36,7 @@
     "pacote": "^11.1.11",
     "pg": "^8.0.3",
     "public-ip": "^4.0.2",
-    "slash-create": "^3.1.0",
+    "slash-create": "https://github.com/Snazzah/slash-create",
     "sqlite3": "^5.0.0",
     "tmp": "^0.1.0",
     "transliteration": "^2.1.11",

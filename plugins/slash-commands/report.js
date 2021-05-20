@@ -1,5 +1,4 @@
-const { CommandOptionType } = require("slash-create");
-const SlashCommand = require("../utils/RegExpFixCommand");
+const { SlashCommand, CommandOptionType } = require("slash-create");
 
 module.exports = class HelloCommand extends SlashCommand {
   constructor(creator) {
