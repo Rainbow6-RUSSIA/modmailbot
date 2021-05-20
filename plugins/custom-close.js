@@ -1,10 +1,10 @@
-/* const moment = require("moment");
+const moment = require("moment");
 const Eris = require("eris");
-const utils = require("../utils");
-const threads = require("../data/threads");
-const blocked = require("../data/blocked");
-const { messageQueue } = require("../queue");
-const { getLogUrl, getLogFile, getLogCustomResponse } = require("../data/logs");
+const utils = require("../src/utils");
+const threads = require("../src/data/threads");
+const blocked = require("../src/data/blocked");
+const { messageQueue } = require("../src/queue");
+const { getLogUrl, getLogFile, getLogCustomResponse } = require("../src/data/logs");
 
 module.exports = ({ bot, knex, config, commands }) => {
   async function sendCloseNotification(thread, body) {
@@ -172,4 +172,3 @@ module.exports = ({ bot, knex, config, commands }) => {
     await sendCloseNotification(thread, `Почтовый тред #${thread.thread_number} с ${thread.user_name} (${thread.user_id}) был закрыт автоматически после удаления канала`);
   });
 };
- */
