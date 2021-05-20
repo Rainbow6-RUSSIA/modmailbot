@@ -243,10 +243,6 @@ async function createNewThreadForUser(user, opts = {}) {
     // Post some info to the beginning of the new thread
     const infoHeaderItems = [];
 
-    // Account age
-    const accountAge = humanizeDuration(Date.now() - user.createdAt, {largest: 2, round: true, language: "ru"});
-    infoHeaderItems.push(`ВОЗРАСТ АККАУНТА: **${accountAge}**`);
-
     // User id (and mention, if enabled)
     if (config.mentionUserInThreadHeader) {
       infoHeaderItems.push(`ID **${user.id}** (<@!${user.id}>)`);
@@ -258,36 +254,36 @@ async function createNewThreadForUser(user, opts = {}) {
       return titles[(n % 10 == 1 && n % 100 != 11 ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2)];
     }
 
-    let infoHeader = infoHeaderItems.join(", ");
-
     // Guild member info
     for (const [guildId, guildData] of userGuildData.entries()) {
+      if (mainGuilds.length > 1) {
+        infoHeaderItems.push(`**[${utils.escapeMarkdown(guildData.guild.name)}]**`);
+      }
+
       const {nickname, joinDate} = getHeaderGuildInfo(guildData.member);
-      const headerItems = [
-        `НИКНЕЙМ: **${utils.escapeMarkdown(nickname)}**`,
-        `ПРИСОЕДИНИЛСЯ: **${joinDate}** назад`
-      ];
+      
+      infoHeaderItems.push(`НИКНЕЙМ: **${utils.escapeMarkdown(nickname)}**`);
+
+      if (config.rolesInThreadHeader && guildData.member.roles.length) {
+        const roles = guildData.member.roles.map(roleId => guildData.guild.roles.get(roleId)).filter(Boolean);
+        infoHeaderItems.push(`РОЛИ **${roles.map(r => r.name).join(", ")}**`);
+      }
 
       if (guildData.member.voiceState.channelID) {
         const voiceChannel = guildData.guild.channels.get(guildData.member.voiceState.channelID);
         if (voiceChannel) {
-          headerItems.push(`ГОЛОСОВОЙ КАНАЛ: **${utils.escapeMarkdown(voiceChannel.name)}**`);
+          infoHeaderItems.push(`ГОЛОСОВОЙ КАНАЛ: **${utils.escapeMarkdown(voiceChannel.name)}**`);
         }
       }
 
-      if (config.rolesInThreadHeader && guildData.member.roles.length) {
-        const roles = guildData.member.roles.map(roleId => guildData.guild.roles.get(roleId)).filter(Boolean);
-        headerItems.push(`РОЛИ **${roles.map(r => r.name).join(", ")}**`);
-      }
-
-      const headerStr = headerItems.join(", ");
-
-      if (mainGuilds.length === 1) {
-        infoHeader += `\n${headerStr}`;
-      } else {
-        infoHeader += `\n**[${utils.escapeMarkdown(guildData.guild.name)}]** ${headerStr}`;
-      }
+      infoHeaderItems.push(`ПРИСОЕДИНИЛСЯ: **${joinDate}** назад`);
     }
+
+    // Account age
+    const accountAge = humanizeDuration(Date.now() - user.createdAt, {largest: 2, round: true, language: "ru"});
+    infoHeaderItems.push(`ВОЗРАСТ АККАУНТА: **${accountAge}**`);
+
+    let infoHeader = infoHeaderItems.join("\n");
 
     // Modmail history / previous logs
     const userLogCount = await getClosedThreadCountByUserId(user.id);
