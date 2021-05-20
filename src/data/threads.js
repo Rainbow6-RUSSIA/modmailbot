@@ -245,9 +245,9 @@ async function createNewThreadForUser(user, opts = {}) {
 
     // User id (and mention, if enabled)
     if (config.mentionUserInThreadHeader) {
-      infoHeaderItems.push(`ID **${user.id}** (<@!${user.id}>)`);
+      infoHeaderItems.push(`ID: **${user.id}** (<@!${user.id}>)`);
     } else {
-      infoHeaderItems.push(`ID **${user.id}**`);
+      infoHeaderItems.push(`ID: **${user.id}**`);
     }
 
     function declOfNum(n, titles) {
@@ -266,7 +266,7 @@ async function createNewThreadForUser(user, opts = {}) {
 
       if (config.rolesInThreadHeader && guildData.member.roles.length) {
         const roles = guildData.member.roles.map(roleId => guildData.guild.roles.get(roleId)).filter(Boolean);
-        infoHeaderItems.push(`РОЛИ **${roles.map(r => r.name).join(", ")}**`);
+        infoHeaderItems.push(`РОЛИ: **${roles.sort((a, b) => b.position - a.position).map(r => r.name).join(", ")}**`);
       }
 
       if (guildData.member.voiceState.channelID) {
