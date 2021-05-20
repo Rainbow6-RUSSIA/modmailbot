@@ -1,3 +1,5 @@
+module.exports = ({ bot, knex, config, commands }) => {};
+
 /* const moment = require("moment");
 const Eris = require("eris");
 const utils = require("../utils");
