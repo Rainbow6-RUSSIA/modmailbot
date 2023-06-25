@@ -7,5 +7,5 @@ module.exports = ({ bot, knex, config, commands }) => {
       await thread.addAlert(msg.author.id);
       await thread.postSystemMessage(`Упоминание ${msg.author.username}#${msg.author.discriminator} при появлении новых сообщений в треде.`);
     }
-  });
+  }, { allowSuspended: true });
 };
