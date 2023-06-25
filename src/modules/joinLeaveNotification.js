@@ -47,7 +47,7 @@ module.exports = ({ bot }) => {
       const thread = await threads.findOpenThreadByUserId(user.id);
       if (thread != null) {
         await thread.postSystemMessage(
-          `***The user was banned from the ${guild.name} server.***`
+          `***Пользователь был заблокирован на ${guild.name}.***`
         );
         leaveIgnoreIDs.push(user.id);
       }
@@ -63,7 +63,7 @@ module.exports = ({ bot }) => {
       const thread = await threads.findOpenThreadByUserId(user.id);
       if (thread != null) {
         await thread.postSystemMessage(
-          `***The user was unbanned from the ${guild.name} server.***`
+          `***Пользователь был разблокирован на ${guild.name}.***`
         );
       }
     });

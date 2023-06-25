@@ -12,7 +12,7 @@ module.exports = ({ bot, knex, config, commands }) => {
     const userNotes = await findNotesByUserId(userId);
     if (! userNotes.length) {
       msg.channel.createMessage({
-        content: `There are no notes for <@!${userId}>`,
+        content: `Нет заметок по <@!${userId}>`,
         allowedMentions: {},
       });
       return;
@@ -21,9 +21,9 @@ module.exports = ({ bot, knex, config, commands }) => {
     for (const userNote of userNotes) {
       const timestamp = moment.utc(userNote.created_at).format("X");
       const content = [
-        `Set by <@!${userNote.author_id}> at <t:${timestamp}:f>:`,
+        `Установлена <@!${userNote.author_id}> в <t:${timestamp}:f>:`,
         `${START_CODEBLOCK}${escapeMarkdown(userNote.body)}${END_CODEBLOCK}`,
-        `*Delete with \`${config.prefix}delete_note ${userNote.id}\`*\n`,
+        `*Удалить: \`${config.prefix}delete_note ${userNote.id}\`*\n`,
       ].join("\n");
       const chunks = chunkMessageLines(content);
       for (const chunk of chunks) {
@@ -49,7 +49,7 @@ module.exports = ({ bot, knex, config, commands }) => {
     await createUserNote(userId, authorId, body);
 
     await msg.channel.createMessage({
-      content: `Note added for <@!${userId}>`,
+      content: `Добавлена заметка по <@!${userId}>`,
       allowedMentions: {},
     });
   }
@@ -64,12 +64,12 @@ module.exports = ({ bot, knex, config, commands }) => {
   async function deleteUserNoteCmd(msg, noteId) {
     const note = await findNote(noteId);
     if (! note) {
-      postError(msg.channel, "Note not found!");
+      postError(msg.channel, "Заметка не найдена!");
       return;
     }
 
     await deleteNote(noteId);
-    await msg.channel.createMessage(`Deleted note on <@!${note.user_id}>:\n${START_CODEBLOCK}${escapeMarkdown(note.body)}${END_CODEBLOCK}`);
+    await msg.channel.createMessage(`Удалена заметка по <@!${note.user_id}>:\n${START_CODEBLOCK}${escapeMarkdown(note.body)}${END_CODEBLOCK}`);
   }
 
   commands.addInboxServerCommand("delete_note", "<noteId:number>", (msg, args) => {

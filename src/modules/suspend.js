@@ -42,7 +42,7 @@ module.exports = ({ bot, knex, config, commands }) => {
 
   commands.addInboxThreadCommand("suspend", "[delay:delay]", async (msg, args, thread) => {
     if (thread.status === THREAD_STATUS.SUSPENDED) {
-      thread.postSystemMessage("Thread is already suspended.");
+      thread.postSystemMessage("Тред уже заморожен.");
       return;
     }
     if (args.delay) {
