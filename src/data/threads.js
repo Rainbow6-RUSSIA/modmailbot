@@ -312,7 +312,7 @@ async function createNewThreadForUser(user, opts = {}) {
 
     const userNotes = await findNotesByUserId(user.id);
     if (userNotes.length) {
-      infoHeader += `\n\nThis user has **${userNotes.length}** notes. Use \`${config.prefix}notes\` to see them.`;
+      infoHeader += `\n\nЭтот пользователь имеет **${userNotes.length}** замет${declOfNum(userNotes.length, ["у", "и", "ок"])}. Используйте \`${config.prefix}notes\` чтобы посмотреть их.`;
     }
 
     infoHeader += "\n────────────────";
