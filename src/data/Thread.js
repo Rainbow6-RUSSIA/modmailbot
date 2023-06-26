@@ -148,7 +148,7 @@ class Thread {
     }).returning("id");
 
     const threadMessage = await knex("thread_messages")
-      .where("id", insertedIds[0])
+      .where("id", insertedIds[0].id)
       .select();
 
     return new ThreadMessage(threadMessage[0]);
