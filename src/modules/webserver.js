@@ -80,7 +80,7 @@ if (fs.existsSync(mdPrivacyPolicyPath)) {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Политика конфиденциальности</title>
+      <title>Политика конфиденциальности / Privacy policy</title>
       <style>
         html {
           font: normal 16px/1.4 system-ui, sans-serif;
