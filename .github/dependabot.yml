@@ -4,6 +4,8 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
-    target-branch: "dev"
+    target-branch: "master"
     allow:
       - dependency-type: "direct"
+    cooldown:
+      default-days: 14

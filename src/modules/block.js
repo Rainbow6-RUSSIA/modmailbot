@@ -49,7 +49,7 @@ module.exports = ({ bot, knex, config, commands }) => {
       : null;
 
     const user = bot.users.get(userIdToBlock);
-    await blocked.block(userIdToBlock, (user ? `${user.username}#${user.discriminator}` : ""), msg.author.id, expiresAt);
+    await blocked.block(userIdToBlock, (user ? user.username : ""), msg.author.id, expiresAt);
 
     if (expiresAt) {
       const humanized = humanizeDuration(args.blockTime, { largest: 2, round: true, language: "ru" });
@@ -141,5 +141,21 @@ module.exports = ({ bot, knex, config, commands }) => {
         allowedMentions: { users: [userIdToCheck] },
       });
     }
+  });
+
+  commands.addInboxServerCommand("blocklist", "", async (msg, args, thread) => {
+    const blockedUsers = await blocked.getBlockedUsers();
+    if (blockedUsers.length === 0) {
+      msg.channel.createMessage("Сейчас нет заблокированных пользователей.");
+      return;
+    }
+
+    let reply = "Список заблокированных пользователей:\n";
+    for (const user of blockedUsers) {
+      const userInfo = `**<@!${user.userId}> (id \`${user.userId}\`)** — заблокировал <@${user.blockedBy}>${user.expiresAt ? `, до ${user.expiresAt} (UTC)` : ", навсегда"}`;
+      reply += userInfo + "\n";
+    }
+
+    msg.channel.createMessage(reply);
   });
 };

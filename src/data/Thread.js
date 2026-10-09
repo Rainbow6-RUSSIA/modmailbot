@@ -7,6 +7,7 @@ const utils = require("../utils");
 const config = require("../cfg");
 const attachments = require("./attachments");
 const { formatters } = require("../formatters");
+const { sanitiseEmbedsForMetadata } = require("../embedLogging");
 const { callBeforeNewMessageReceivedHooks } = require("../hooks/beforeNewMessageReceived");
 const { callAfterNewMessageReceivedHooks } = require("../hooks/afterNewMessageReceived");
 const { callAfterThreadCloseHooks } = require("../hooks/afterThreadClose");
@@ -100,11 +101,9 @@ class Thread {
       const textContent = typeof content === "string" ? content : content.content;
       const contentObj = typeof content === "string" ? {} : content;
       if (textContent) {
-        // Text content is included, chunk it and send it as individual messages.
-        // Files (attachments) are only sent with the last message.
+   
         const chunks = utils.chunkMessageLines(textContent);
         for (const [i, chunk] of chunks.entries()) {
-          // Only send embeds, files, etc. with the last message
           const msg = (i === chunks.length - 1)
             ? await bot.createMessage(this.channel_id, { ...contentObj, content: chunk }, file)
             : await bot.createMessage(this.channel_id, { ...contentObj, content: chunk, embed: null });
@@ -112,7 +111,6 @@ class Thread {
           firstMessage = firstMessage || msg;
         }
       } else {
-        // No text content, send as one message
         firstMessage = await bot.createMessage(this.channel_id, content, file);
       }
 
@@ -122,6 +120,9 @@ class Thread {
       if (e.code === 10003) {
         console.log(`[INFO] Failed to send message to thread channel for ${this.user_name} because the channel no longer exists. Auto-closing the thread.`);
         this.close(true);
+      } else if (e.code === 240000) {
+        console.log(`[INFO] Failed to send message to thread channel for ${this.user_name} because the message contains a link blocked by the harmful links filter`);
+        await bot.createMessage(this.channel_id, "Не удалось отправить сообщение в канал треда: оно содержит ссылку, заблокированную фильтром вредоносных ссылок");
       } else {
         throw e;
       }
@@ -221,7 +222,8 @@ class Thread {
    * @returns {Promise<boolean>} Whether we were able to send the reply
    */
   async replyToUser(moderator, text, replyAttachments = [], isAnonymous = false, messageReference = null) {
-    let moderatorName = config.useNicknames && moderator.nick ? moderator.nick : moderator.user.username;
+    const regularName = config.useDisplaynames ? moderator.user.globalName || moderator.user.username : moderator.user.username;
+    let moderatorName = config.useNicknames && moderator.nick ? moderator.nick : regularName;
     if (config.breakFormattingForNames) {
       moderatorName = moderatorName.replace(escapeFormattingRegex, "\\$&");
     }
@@ -367,6 +369,12 @@ class Thread {
    * @returns {Promise<void>}
    */
   async receiveUserReply(msg, skipAlert = false) {
+    // Avoid duplicate inserts (e.g. downtime recovery fetching overlapping history)
+    const existing = await knex("thread_messages")
+      .where("dm_message_id", msg.id)
+      .first();
+    if (existing) return;
+
     const user = msg.author;
     const opts = {
       thread: this,
@@ -382,8 +390,86 @@ class Thread {
     });
     if (hookResult.cancelled) return;
 
-    const fullUserName = `${msg.author.username}#${msg.author.discriminator}`;
     let messageContent = msg.content || "";
+
+    let forwardedEmbeds = null;
+
+    const formatPollLines = poll => {
+      if (! poll) return null;
+
+      const title = poll.question && poll.question.text
+        ? String(poll.question.text).trim()
+        : "*(без вопроса)*";
+
+      const answers = Array.isArray(poll.answers) ? poll.answers : [];
+      const optionLines = answers.map((answer, i) => {
+        const text = answer && answer.poll_media && answer.poll_media.text
+          ? String(answer.poll_media.text).trim()
+          : "";
+        return `Вариант ${i + 1}: ${text || "*(без текста)*"}`;
+      });
+
+      return [
+        "*Пользователь отправил опрос:*",
+        `Вопрос: ${title}`,
+        ...optionLines,
+      ].filter(Boolean);
+    };
+
+    const pushSection = (lines, title, sectionLines) => {
+      if (! sectionLines || sectionLines.length === 0) return;
+      lines.push("", title, ...sectionLines);
+    };
+
+    const pushMessageLink = (lines, link) => {
+      if (! link) return;
+      const line = `*Ссылка на сообщение:* <${link}>`;
+      // If we're only showing the header (e.g. embed-only forward), don't insert a blank line.
+      lines.push(...(lines.length === 1 ? [line] : ["", line]));
+    };
+
+    // Snapshot reading for forwarded messages
+    const snapshot = Array.isArray(msg.messageSnapshots) ? msg.messageSnapshots[0] : null;
+    const snapshotMessage = snapshot && snapshot.message;
+    if (snapshotMessage) {
+      const forwardedContent = (snapshotMessage.content || "").trim();
+      const forwardedGuildId = snapshot.guildID || snapshotMessage.guildID;
+      const forwardedChannelId = snapshotMessage.channel && snapshotMessage.channel.id;
+      const forwardedMessageId = snapshotMessage.id;
+      const forwardedPollLines = formatPollLines(snapshotMessage.poll);
+
+      // Get the attachment URLs from the forwarded message
+      const forwardedAttachmentUrls = Array.isArray(snapshotMessage.attachments)
+        ? snapshotMessage.attachments.map(a => a && a.url).filter(Boolean)
+        : [];
+
+      forwardedEmbeds = sanitiseEmbedsForMetadata(snapshotMessage.embeds);
+
+      const forwardedJumpLink = (forwardedGuildId && forwardedChannelId && forwardedMessageId)
+        ? `https://discord.com/channels/${forwardedGuildId}/${forwardedChannelId}/${forwardedMessageId}`
+        : null;
+
+      const isEmbedForward = Boolean(forwardedEmbeds && forwardedEmbeds.length);
+      const forwardedHeader = isEmbedForward ? "*Пользователь переслал эмбед:*" : "*Пересланное сообщение:*";
+      const forwardedLines = [forwardedHeader];
+      if (forwardedContent) {
+        forwardedLines.push(forwardedContent);
+      } else if (! forwardedPollLines && ! isEmbedForward) {
+        forwardedLines.push("*(без текста)*");
+      }
+
+      pushSection(forwardedLines, "*Вложения:*", forwardedAttachmentUrls);
+      if (forwardedPollLines) pushSection(forwardedLines, forwardedPollLines[0], forwardedPollLines.slice(1));
+      pushMessageLink(forwardedLines, forwardedJumpLink);
+      const forwardedBlock = forwardedLines.join("\n").trim();
+
+      messageContent = [messageContent, forwardedBlock].filter(Boolean).join("\n\n");
+    }
+
+    const pollLines = formatPollLines(msg.poll);
+    if (pollLines) {
+      messageContent = [messageContent, pollLines.join("\n")].filter(Boolean).join("\n\n");
+    }
 
     // Prepare attachments
     const attachmentLinks = [];
@@ -443,10 +529,10 @@ class Thread {
       messageContent = messageContent.trim();
     }
 
-    if (msg.stickers && msg.stickers.length) {
-      const stickerLines = msg.stickers.map(sticker => {
-        return `*<Сообщение содержит стикер "${sticker.name}">*`;
-      });
+    if (msg.stickerItems && msg.stickerItems.length) {
+      const stickerLines = msg.stickerItems.map(sticker => {
+        return `*Отправлен стикер "${sticker.name}":* https://media.discordapp.net/stickers/${sticker.id}.webp?size=160`
+      })
 
       messageContent += "\n\n" + stickerLines.join("\n");
     }
@@ -457,8 +543,12 @@ class Thread {
     let threadMessage = new ThreadMessage({
       message_type: THREAD_MESSAGE_TYPE.FROM_USER,
       user_id: this.user_id,
-      user_name: fullUserName,
+      user_name: config.useDisplaynames ? msg.author.globalName || msg.author.username : msg.author.username,
       body: messageContent,
+      metadata: {
+        embeds: sanitiseEmbedsForMetadata(msg.embeds),
+        forwardedEmbeds: snapshotMessage ? sanitiseEmbedsForMetadata(snapshotMessage.embeds) : null,
+      },
       is_anonymous: 0,
       dm_message_id: msg.id,
       dm_channel_id: msg.channel.id,
@@ -470,6 +560,9 @@ class Thread {
 
     // Show user reply in the inbox thread
     const inboxContent = messageContentToAdvancedMessageContent(await formatters.formatUserReplyThreadMessage(threadMessage));
+    if (forwardedEmbeds) {
+      inboxContent.embeds = forwardedEmbeds;
+    }
     if (messageReference) {
       inboxContent.messageReference = {
         channelID: messageReference.channelID,
@@ -630,7 +723,7 @@ class Thread {
     return this._addThreadMessageToDB({
       message_type: THREAD_MESSAGE_TYPE.CHAT,
       user_id: msg.author.id,
-      user_name: `${msg.author.username}#${msg.author.discriminator}`,
+      user_name: config.useDisplaynames ? msg.author.globalName || msg.author.username : msg.author.username,
       body: msg.content,
       is_anonymous: 0,
       dm_message_id: msg.id
@@ -641,7 +734,7 @@ class Thread {
     return this._addThreadMessageToDB({
       message_type: THREAD_MESSAGE_TYPE.COMMAND,
       user_id: msg.author.id,
-      user_name: `${msg.author.username}#${msg.author.discriminator}`,
+      user_name: config.useDisplaynames ? msg.author.globalName || msg.author.username : msg.author.username,
       body: msg.content,
       is_anonymous: 0,
       dm_message_id: msg.id
@@ -785,7 +878,7 @@ class Thread {
       .update({
         scheduled_close_at: time,
         scheduled_close_id: user.id,
-        scheduled_close_name: user.username,
+        scheduled_close_name: config.useDisplaynames ? user.globalName || user.username : user.username,
         scheduled_close_silent: silent
       });
 
@@ -844,7 +937,7 @@ class Thread {
       .update({
         scheduled_suspend_at: time,
         scheduled_suspend_id: user.id,
-        scheduled_suspend_name: user.username
+        scheduled_suspend_name: config.useDisplaynames ? user.globalName || user.username : user.username,
       });
   }
 
@@ -1077,10 +1170,13 @@ class Thread {
     const dmChannel = await bot.getDMChannel(this.user_id);
     if (! dmChannel) return;
 
-    const lastMessageId = (await this.getLatestThreadMessage()).dm_message_id;
+    const latestThreadMessage = await this.getLatestThreadMessage();
+    if (! latestThreadMessage) return;
+
+    const lastMessageId = latestThreadMessage.dm_message_id;
     let messages = (await dmChannel.getMessages(50, null, lastMessageId, null))
       .reverse() // We reverse the array to send the messages in the proper order - Discord returns them newest to oldest
-      .filter(msg => msg.author.id === this.user_id); // Make sure we're not recovering bot or system messages
+      .filter(msg => msg.author && msg.author.id === this.user_id); // Make sure we're not recovering bot or system messages (author can be missing for partial payloads)
 
     if (messages.length === 0) return;
 

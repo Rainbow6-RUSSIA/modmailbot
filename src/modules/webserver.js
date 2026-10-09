@@ -4,11 +4,14 @@ const mime = require("mime");
 const url = require("url");
 const fs = require("fs");
 const qs = require("querystring");
+const path = require("path");
 const moment = require("moment");
 const config = require("../cfg");
 const threads = require("../data/threads");
 const attachments = require("../data/attachments");
 const { formatters } = require("../formatters");
+const { summariseEmbedsAsText } = require("../embedLogging");
+const marked = require("marked");
 
 function notfound(res) {
   res.status(404).send("Page Not Found");
@@ -23,6 +26,19 @@ async function serveLogs(req, res) {
   if (! thread) return notfound(res);
 
   let threadMessages = await thread.getThreadMessages();
+
+  threadMessages = threadMessages.map(msg => {
+    const embeds = msg.getMetadataValue && msg.getMetadataValue("embeds");
+    const forwardedEmbeds = msg.getMetadataValue && msg.getMetadataValue("forwardedEmbeds");
+    const embedText = summariseEmbedsAsText(embeds, "Пользователь отправил эмбед");
+    const forwardedEmbedText = summariseEmbedsAsText(forwardedEmbeds, "Пользователь переслал эмбед");
+
+    if (! embedText && ! forwardedEmbedText) return msg;
+
+    const injected = [msg.body, embedText, forwardedEmbedText].filter(Boolean).join("\n\n");
+    msg.body = injected;
+    return msg;
+  });
 
   const formatLogResult = await formatters.formatLog(thread, threadMessages, {
     simple: Boolean(req.query.simple),
@@ -54,11 +70,46 @@ function serveAttachments(req, res) {
   })
 }
 
+const mdPrivacyPolicyPath = path.resolve(__dirname, "../../PRIVACY_POLICY.md");
+let htmlPrivacyPolicy = null;
+if (fs.existsSync(mdPrivacyPolicyPath)) {
+  const mdPrivacyPolicy = fs.readFileSync(mdPrivacyPolicyPath, { encoding: "utf8" });
+  const parsedPrivacyPolicy = marked.parse(mdPrivacyPolicy);
+  htmlPrivacyPolicy = `
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Privacy policy</title>
+      <style>
+        html {
+          font: normal 16px/1.4 system-ui, sans-serif;
+        }
+        body {
+          width: 100%;
+          max-width: 900px;
+          margin: 32px auto;
+          padding: 0 16px;
+        }
+      </style>
+    </head>
+    <body>${parsedPrivacyPolicy}</body>
+    </html>
+  `;
+}
+
 const server = express();
 server.use(helmet());
 
 server.get("/logs/:threadId", serveLogs);
 server.get("/attachments/:attachmentId/:filename", serveAttachments);
+
+if (htmlPrivacyPolicy) {
+  server.get("/privacy-policy", (req, res) => {
+    res.set("Content-Type", "text/html; charset=utf8");
+    res.send(htmlPrivacyPolicy);
+  });
+}
 
 server.on("error", err => {
   console.log("[WARN] Web server error:", err.message);

@@ -66,7 +66,7 @@ greetingMessage[] = Fourth line! With an empty line in the middle.
 The bot user's token from [Discord Developer Portal](https://discord.com/developers/).
 
 #### mainServerId
-**Accepts multiple values** Your server's ID.
+**Accepts multiple values**. Your server's ID.
 
 #### inboxServerId
 For a single-server setup, same as [mainServerId](#mainServerId).  
@@ -137,9 +137,13 @@ To send internal messages in the thread when this option is enabled, add your co
 **Default:** `off`  
 If `alwaysReply` is enabled, this option controls whether the auto-reply is anonymous
 
+#### forceAnon
+**Default:** `off`  
+If enabled, all replies (including regular `!reply` and snippets) are anonymous
+
 #### anonymizeChannelName
 **Default:** `off`  
-If enabled, channel names will be the user's name and discriminator salted with the current time, then hashed to protect the user's privacy
+If enabled, channel names will be the user's name salted with the current time, then hashed to protect the user's privacy
 
 #### attachmentStorage
 **Default:** `original`  
@@ -164,6 +168,12 @@ The delay after which `autoAlert` kicks in. Uses the same format as timed close;
 #### botMentionResponse
 **Default:** *None*  
 If set, the bot auto-replies to bot mentions (pings) with this message. Use `{userMention}` in the text to ping the user back.
+
+Note that the bot will ignore mentions in messages on the main server if any of the following are true:
+* The message author is the owner of the inbox server
+* [`inboxServerPermission`](#inboxServerPermission) has not been configured
+* The message author matches an `inboxServerPermission`
+* The message author is the bot
 
 #### categoryAutomation.newThread
 **Default:** *None*  
@@ -194,6 +204,14 @@ Custom aliases/shortcuts for commands. Example:
 commandAliases.mv = move
 # !x is an alias/shortcut for !close
 commandAliases.x = close
+```
+Note that you can combine different commands and parameters together:
+
+```ini
+# !replysus is a alias/shortcut for !reply and !suspend
+commandAliases.replysus = reply Thank you for this, we will suspend this thread whilst we conduct our investigations.
+# The !suspend shortcut is implemented here
+commandAliases.replysus = suspend
 ```
 
 #### enableGreeting
@@ -296,6 +314,11 @@ If enabled, a system message will be posted into any open threads if the user jo
 **Default:** `on`  
 If enabled, a system message will be posted into any open threads if the user leaves a main server
 
+#### overrideRoleNameDisplay
+**Default:** `None`  
+Role name to display in all replies. This completely overrides normal role selection, all replies will contain the string entered. For example; `overrideRoleNameDisplay = Moderator`
+
+
 #### pingOnBotMention
 **Default:** `on`  
 If enabled, the bot will mention staff (see `mentionRole` option) on the inbox server when the bot is mentioned on the main server.
@@ -325,6 +348,15 @@ If enabled, the bot will react to messages sent to it with the emoji defined in 
 **Default:** `📨`  
 The emoji that the bot will react with when it sees a message.  Requires `reactOnSeen` to be enabled.  
 Must be pasted in the config file as the Emoji representation and not as a unicode codepoint. Use `emojiName:emojiID` for custom emoji.
+
+#### notifyOnReaction
+**Default:** `off`  
+If enabled, the bot will notify staff in the modmail thread when a user reacts to a message sent to them by the bot.
+
+#### notifyOnReactionRemoval
+**Default:** `off`  
+If enabled, the bot will notify staff in the modmail thread when a user removes a reaction from a message sent to them by the bot.  
+Requires `notifyOnReaction` to be enabled for reactions to be tracked.
 
 #### relaySmallAttachmentsAsAttachments
 **Default:** `off`  
@@ -382,7 +414,7 @@ The bot's status text. Set to `none` to disable.
 
 #### statusType
 **Default:** `playing`  
-The bot's status type. One of `playing`, `watching`, `listening`, `streaming`.
+The bot's status type. One of `playing`, `watching`, `listening`, `streaming`, `custom`, `competing`.
 
 #### statusUrl
 **Default:** [nothing]  
@@ -405,7 +437,7 @@ This message is also used for timed blocks if timedBlockMessage is not set.
 **Default** *None*  
 Message to send to a user when they are blocked for a specific duration.
 * You can use `{duration}` in the text to include the duration (e.g. `4 weeks, 2 days`)
-* You can use `{timestamp}` in the text to create a Discord timestamp of the time the user is blocked until (e.g. `&lt;t:{timestamp}:f&gt;` would become `June 3, 2022 at 11:50 PM`)
+* You can use `{timestamp}` in the text to create a Discord timestamp of the time the user is blocked until (e.g. `<t:{timestamp}:f>` would become `June 3, 2022 at 11:50 PM`)
 
 #### unblockMessage
 **Default** *None*  
@@ -445,11 +477,16 @@ If enabled, update notifications will also be given for new beta versions
 
 #### url
 **Default:** *None*  
-URL to use for attachment and log links. Defaults to `http://IP:PORT`.
+URL to use for attachment and log links. Defaults to `http://IP:PORT/`.
 
 #### useNicknames
 **Default:** `off`  
 If enabled, mod replies will use their nicknames (on the inbox server) instead of their usernames
+
+#### useDisplaynames
+**Default:** `on`  
+If enabled, the bot will use the users display name instead of their username where it makes sense  
+Setting `useNicknames` to `on` will override this in most cases  
 
 #### useGitForGitHubPlugins
 **Default:** `off`  

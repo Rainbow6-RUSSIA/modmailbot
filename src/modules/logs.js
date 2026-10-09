@@ -65,7 +65,7 @@ module.exports = ({ bot, knex, config, commands, hooks }) => {
     }
 
     if (threadLines.length === 0) message = `**Нет логов для <@${userId}>**`;
-    
+
     // Send the list of logs in chunks of 15 lines per message
     const lines = message.split("\n");
     const chunks = utils.chunk(lines, 15);

@@ -77,7 +77,7 @@ config.dbDir = path.join(__dirname, "..", "db");
 config.logDir = path.join(__dirname, "..", "logs"); // Only used for migrating data from older Modmail versions
 
 // Load config values from environment variables
-require("dotenv").config();
+require("dotenv").config({ quiet: true });
 
 const envKeyPrefix = "MM_";
 let loadedEnvValues = 0;
@@ -135,6 +135,10 @@ if (config.mainGuildId && ! config.mainServerId) {
 }
 if (config.mailGuildId && ! config.inboxServerId) {
   config.inboxServerId = config.mailGuildId;
+}
+
+if (!Array.isArray(config.mainServerId)) {
+  config.mainServerId = [config.mainServerId];
 }
 
 if (! config.dbType) {
@@ -276,7 +280,7 @@ const configIsValid = validate(config);
 if (! configIsValid) {
   const errors = validate.errors.map(error => {
     if (error.params.missingProperty) {
-      return `Missing required option: "${error.params.missingProperty.slice(1)}"`;
+      return `Missing required option: "${error.params.missingProperty}"`;
     } else {
       return `The "${error.instancePath.slice(1)}" option ${error.message}. (Is currently: ${typeof config[error.instancePath.slice(1)]})`;
     }

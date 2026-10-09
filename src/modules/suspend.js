@@ -13,7 +13,7 @@ module.exports = ({ bot, knex, config, commands }) => {
     for (const thread of threadsToBeSuspended) {
       if (thread.status === THREAD_STATUS.OPEN) {
         await thread.suspend();
-        await thread.postSystemMessage(`**Тред заморожен** запланированно ${thread.scheduled_suspend_name}. Этот тред останется замороженным пока не будет выполнена команда \`!unsuspend\``);
+        await thread.postSystemMessage(`**Тред заморожен** запланированно ${thread.scheduled_suspend_name}. Этот тред останется замороженным пока не будет выполнена команда \`${config.prefix}unsuspend\``);
       }
     }
   }
@@ -55,7 +55,7 @@ module.exports = ({ bot, knex, config, commands }) => {
     }
 
     await thread.suspend();
-    thread.postSystemMessage("**Тред заморожен!** Этот тред останется замороженным пока не будет выполнена команда `!unsuspend`");
+    thread.postSystemMessage(`**Тред заморожен!** Этот тред останется замороженным пока не будет выполнена команда \`${config.prefix}unsuspend\``);
   }, { allowSuspended: true });
 
   commands.addInboxServerCommand("unsuspend", [], async (msg, args, thread) => {

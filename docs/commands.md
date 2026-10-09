@@ -20,6 +20,11 @@ Send an anonymous reply to the user. Anonymous replies only show the moderator's
 
 **Example:** `!ar Please only use Modmail for serious messages`
 
+To reply automatically without using `!reply`, [turn on `alwaysReply` in bot settings](configuration.md).
+
+### `!realreply <text>` / `!rr <text>`
+Send a reply to the user. This will always include the moderator's name, even if the `forceAnon` option is enabled.
+
 ### `!close`
 Close the Modmail thread.
 
@@ -164,6 +169,9 @@ Delete the specified note. The note ID is shown when running `!notes`.
 
 ### `!version`
 Show the Modmail bot's version.
+
+### `!privacy_policy_link`
+Get a link to the bot's [privacy policy](./privacy-policy.md).
 
 ## Snippets (canned messages)
 See the [📋 Snippets](snippets.md) page for more information!

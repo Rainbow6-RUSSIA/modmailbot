@@ -30,12 +30,11 @@ module.exports = ({ bot, knex, config, commands }) => {
       }
     });
 
-    let amounts = `**${fromUserMessages.length}** message${fromUserMessages.length >= 2 ? "s" : ""} from the user`;
-
-    amounts = `${amounts}, **${toUserMessages.length}** message${toUserMessages.length >= 2 ? "s" : ""} to the user`;
-    amounts = `${amounts} and **${chatMessages.length}** internal chat message${toUserMessages.length >= 2 ? "s" : ""}.`;
-
-    return amounts;
+    return [
+      `Сообщений от пользователя: **${fromUserMessages.length}**`,
+      `, пользователю: **${toUserMessages.length}**`,
+      `, во внутреннем чате: **${chatMessages.length}**.`,
+    ].join("");
   }
 
   async function sendCloseNotification(thread, body) {
@@ -167,7 +166,7 @@ module.exports = ({ bot, knex, config, commands }) => {
       }
 
       // Regular close
-      closedBy = msg.author.username;
+      closedBy = config.useDisplaynames ? msg.author.globalName || msg.author.username : msg.author.username;
     }
 
     // Send close message (unless suppressed with a silent close)
@@ -178,7 +177,7 @@ module.exports = ({ bot, knex, config, commands }) => {
 
     await thread.close(suppressSystemMessages, silentClose);
 
-    await sendCloseNotification(thread, `Почтовый тред #${thread.thread_number} с ${thread.user_name} (${thread.user_id}) был закрыт ${closedBy}`);
+    await sendCloseNotification(thread, `Почтовый тред #${thread.thread_number} с ${thread.user_name} (${thread.user_id}) был закрыт ${closedBy} (${msg.author.id})`);
   }, {
     options: [
       { name: "silent", shortcut: "s", isSwitch: true },

@@ -1,11 +1,12 @@
 const Eris = require("eris");
 const fs = require("fs");
+const fsp = require("fs/promises");
 const https = require("https");
 const {promisify} = require("util");
 const tmp = require("tmp");
 const config = require("../cfg");
 const utils = require("../utils");
-const mv = promisify(require("mv"));
+const path = require("path");
 
 const getUtils = () => require("../utils");
 
@@ -94,7 +95,14 @@ saveLocalAttachment = async (attachment) => {
   const downloadResult = await downloadAttachment(attachment);
 
   // Move the temp file to the attachment folder
-  await mv(downloadResult.path, targetPath);
+  try {
+    await fsp.rename(downloadResult.path, targetPath);
+  } catch (err) {
+    if (err.code !== "EXDEV") throw err;
+
+    await fsp.copyFile(downloadResult.path, targetPath);
+    await fsp.unlink(downloadResult.path);
+  }
 
   // Resolve the attachment URL
   const url = await getLocalAttachmentUrl(attachment.id, attachment.filename);
@@ -114,6 +122,11 @@ const downloadAttachment = (attachment, tries = 0) => {
     }
 
     tmp.file((err, filepath, fd, cleanupCallback) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
       const writeStream = fs.createWriteStream(filepath);
 
       https.get(attachment.url, (res) => {
@@ -209,7 +222,11 @@ async function attachmentToDiscordFileObject(attachment) {
   const downloadResult = await downloadAttachment(attachment);
   const data = await readFile(downloadResult.path);
   downloadResult.cleanup();
-  return { file: data, name: attachment.filename };
+  // Attachments with duplicate filenames get dropped silently by the API, so give every attachment a unique filename
+  // This commonly happens when pasting images as attachments, as they get named "unknown.png"
+  const ext = path.extname(attachment.filename) || ".dat";
+  const filename = `${attachment.id}${ext}`;
+  return { file: data, name: filename };
 }
 
 /**
@@ -226,7 +243,7 @@ const saveAttachment = (attachment) => {
     throw new Error(`Unknown attachment storage option: ${config.attachmentStorage}`);
   }
 
-  attachmentSavePromises[attachment.id].then(() => {
+  attachmentSavePromises[attachment.id] = attachmentSavePromises[attachment.id].finally(() => {
     delete attachmentSavePromises[attachment.id];
   });
 

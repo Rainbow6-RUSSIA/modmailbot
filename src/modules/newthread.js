@@ -28,7 +28,7 @@ module.exports = ({ bot, knex, config, commands }) => {
       source: "command",
     });
 
-    createdThread.postSystemMessage(`Тред открыт ${msg.author.username}#${msg.author.discriminator}`);
+    createdThread.postSystemMessage(`Тред открыт ${msg.author.nick || config.useDisplaynames ? msg.author.globalName || msg.author.username : msg.author.username}`);
 
     const channel = await getOrFetchChannel(bot, msg.channel.id);
     channel.createMessage(`Тред открыт: <#${createdThread.channel_id}>`);

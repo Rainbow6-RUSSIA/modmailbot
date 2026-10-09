@@ -107,10 +107,14 @@ function initStatus() {
       "watching": Eris.Constants.ActivityTypes.WATCHING,
       "listening": Eris.Constants.ActivityTypes.LISTENING,
       "streaming": Eris.Constants.ActivityTypes.STREAMING,
+      "custom": Eris.Constants.ActivityTypes.CUSTOM,
+      "competing": Eris.Constants.ActivityTypes.COMPETING,
     }[config.statusType] || Eris.Constants.ActivityTypes.GAME;
 
     if (type === Eris.Constants.ActivityTypes.STREAMING) {
       bot.editStatus(null, { name: config.status, type, url: config.statusUrl });
+    } else if (type === Eris.Constants.ActivityTypes.CUSTOM) {
+      bot.editStatus(null, { name: "custom", type, state: config.status });
     } else {
       bot.editStatus(null, { name: config.status, type });
     }
@@ -307,21 +311,20 @@ function initBaseMessageHandlers() {
     const staffMention = (config.pingOnBotMention ? utils.getInboxMention() : "");
     const allowedMentions = (config.pingOnBotMention ? utils.getInboxMentionAllowedMentions() : undefined);
 
-    const userMentionStr = `**${msg.author.username}#${msg.author.discriminator}** (\`${msg.author.id}\`)`;
+    const userMentionStr = `**${msg.author.username}** (\`${msg.author.id}\`)`;
     const messageLink = `https:\/\/discord.com\/channels\/${channel.guild.id}\/${channel.id}\/${msg.id}`;
 
     if (mainGuilds.length === 1) {
-        content = `${staffMention}Бот упомянут в ${msg.channel.mention} ${userMentionStr}: "${msg.cleanContent}"\n\n<${messageLink}>`;
+        content = `${staffMention}Бот упомянут в ${channel.mention} ${userMentionStr}: "${msg.content}"\n\n<${messageLink}>`;
     } else {
-        content = `${staffMention}Бот упомянут в ${msg.channel.mention} (${msg.channel.guild.name}) ${userMentionStr}: "${msg.cleanContent}"\n\n<${messageLink}>`;
+        content = `${staffMention}Бот упомянут в ${channel.mention} (${channel.guild.name}) ${userMentionStr}: "${msg.content}"\n\n<${messageLink}>`;
     }
 
     content = utils.chunkMessageLines(content);
     const logChannelId = utils.getLogChannel().id;
     for (let i = 0; i < content.length; i++) {
-      chunk = content[i];
       await bot.createMessage(logChannelId, {
-        content: chunk,
+        content: content[i],
         allowedMentions,
       });
     }
@@ -375,6 +378,7 @@ function getBasePlugins() {
     "file:./src/modules/joinLeaveNotification",
     "file:./src/modules/roles",
     "file:./src/modules/notes",
+    "file:./src/modules/dmReactions",
   ];
 }
 
