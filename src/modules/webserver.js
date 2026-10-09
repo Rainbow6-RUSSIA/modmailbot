@@ -76,11 +76,11 @@ if (fs.existsSync(mdPrivacyPolicyPath)) {
   const mdPrivacyPolicy = fs.readFileSync(mdPrivacyPolicyPath, { encoding: "utf8" });
   const parsedPrivacyPolicy = marked.parse(mdPrivacyPolicy);
   htmlPrivacyPolicy = `
-    <html>
+    <html lang="ru">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Privacy policy</title>
+      <title>Политика конфиденциальности</title>
       <style>
         html {
           font: normal 16px/1.4 system-ui, sans-serif;
